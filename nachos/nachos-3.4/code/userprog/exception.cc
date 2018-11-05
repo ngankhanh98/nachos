@@ -95,6 +95,8 @@ int System2User(int virtAddr, int len, char* buffer)
 void
 ExceptionHandler(ExceptionType which)
 {
+	int type = machine->ReadRegister(2);
+
 	switch (which)
 	{
 	case NoException:
@@ -110,23 +112,23 @@ ExceptionHandler(ExceptionType which)
 		{
 			int virtAddr;
 			char* filename;
-			DEBUG(‘a’, "\n SC_Create call ...");
-			DEBUG(‘a’, "\n Reading virtual address of filename");
+			DEBUG('a', "\n SC_Create call ...");
+			DEBUG('a', "\n Reading virtual address of filename");
 			// Lấy tham số tên tập tin từ thanh ghi r4
 			virtAddr = machine->ReadRegister(4);
-			DEBUG(‘a’, "\n Reading filename.");
+			DEBUG('a', "\n Reading filename.");
 			// MaxFileLength là = 32
 			filename = User2System(virtAddr, MaxFileLength + 1);
 			if (filename == NULL)
 			{
 				printf("\n Not enough memory in system");
-				DEBUG(‘a’, "\n Not enough memory in system");
+				DEBUG('a', "\n Not enough memory in system");
 				machine->WriteRegister(2, -1); // trả về lỗi cho chương
 				// trình người dùng
 				delete filename;
 				return;
 			}
-			DEBUG(‘a’, "\n Finish reading filename.");
+			DEBUG('a', "\n Finish reading filename.");
 			//DEBUG(‘a’,"\n File name : '"<<filename<<"'");
 			// Create file with size = 0
 			// Dùng đối tượng fileSystem của lớp OpenFile để tạo file,
@@ -147,8 +149,7 @@ ExceptionHandler(ExceptionType which)
 			break;
 		}
 		default:
-			printf("\n Unexpected user mode exception (%d %d)", which,
-				type);
+			printf("\n Unexpected user mode exception (%d %d)",which, type);
 			interrupt->Halt();
 		}
 	}
