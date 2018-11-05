@@ -51,13 +51,22 @@
 void
 ExceptionHandler(ExceptionType which)
 {
-    int type = machine->ReadRegister(2);
+	switch(which)
+	{
+		case NoException:
+			return;
+		case SyscallException:
+			switch(type) {
+				case SC_Halt:
+				DEBUG('a', "\n Shutdown, initated by user programe.");
+				printf("\n\n Shutdown, initated by user programe.");
+				interrupt->Halt();
+				break;
+				case SC_Create:
+				{
+				int virtAddr;
+				}
+			}	
+	}
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
-    }
 }
