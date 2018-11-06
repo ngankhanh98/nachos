@@ -28,7 +28,9 @@
 					// See definitions listed under #else
 class OpenFile {
   public:
+    int type;
     OpenFile(int f) { file = f; currentOffset = 0; }	// open the file
+    OpenFile(int f, int mode) { file = f; currentOffset = 0; type = mode; } // open file w special mode
     ~OpenFile() { Close(file); }			// close the file
 
     int ReadAt(char *into, int numBytes, int position) { 
@@ -63,8 +65,13 @@ class FileHeader;
 
 class OpenFile {
   public:
+    int type;	// 0: read-only,
+		// 1: readable, writeable,
+		// 2: stdin,
+		// 3: stdout
     OpenFile(int sector);		// Open a file whose header is located
 					// at "sector" on the disk
+    OpenFile(int sector, int _type);
     ~OpenFile();			// Close the file
 
     void Seek(int position); 		// Set the position from which to 

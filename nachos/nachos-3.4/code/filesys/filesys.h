@@ -43,7 +43,30 @@
 				// implementation is available
 class FileSystem {
   public:
-    FileSystem(bool format) {}
+    OpenFile **openfile;	// FileSystem is a table containing 10 OpenFile
+    int index;			// Each OpenFile has an index; dont forget openfile[0]: stdin,
+				// openfile[1]: stdout
+    FileSystem(bool format) {
+	openfile = new OpenFile*[10];
+	index = 0;
+	for (int i = 0; i < 10; i++)
+	{
+		openfile[i] = NULL;
+	}
+	this->Create("stdin", 0);	// FileSystem default has stdim, stdout
+	this->Create("stdout", 0);
+	openfile[index++] = this->Open("stdin",2);
+	openfile[index++] = this->Open("stdout",3);
+	}
+
+    ~FileSystem()
+	{
+	for (int i = 0; i < 10; ++i)
+	{
+		if (openfile[i] != NULL) delete openfile[i];
+	}
+	delete[] openfile;
+	}		
 
     bool Create(char *name, int initialSize) { 
 	int fileDescriptor = OpenForWrite(name);
@@ -57,8 +80,18 @@ class FileSystem {
 	  int fileDescriptor = OpenForReadWrite(name, FALSE);
 
 	  if (fileDescriptor == -1) return NULL;
+		index++; 	// open one file and index inscrease
 	  return new OpenFile(fileDescriptor);
       }
+
+    OpenFile* Open(char *name, int type) {
+          int fileDescriptor = OpenForReadWrite(name, FALSE);
+
+          if (fileDescriptor == -1) return NULL;
+                index++;        // open one file and index inscrease
+          return new OpenFile(fileDescriptor, type);
+      }
+
 
     bool Remove(char *name) { return Unlink(name) == 0; }
 
@@ -67,6 +100,9 @@ class FileSystem {
 #else // FILESYS
 class FileSystem {
   public:
+
+    OpenFile** openfile;
+    int index;
     FileSystem(bool format);		// Initialize the file system.
 					// Must be called *after* "synchDisk" 
 					// has been initialized.
@@ -78,7 +114,7 @@ class FileSystem {
 					// Create a file (UNIX creat)
 
     OpenFile* Open(char *name); 	// Open a file (UNIX open)
-
+    OpenFile* Open(char *name, int type);
     bool Remove(char *name);  		// Delete a file (UNIX unlink)
 
     void List();			// List all the files in the file system

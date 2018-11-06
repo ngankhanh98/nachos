@@ -22,7 +22,7 @@
 #define SC_Exit		1
 #define SC_Exec		2
 #define SC_Join		3
-#define SC_Create	4
+#define SC_CreateFile	4
 #define SC_Open		5
 #define SC_Read		6
 #define SC_Write	7
@@ -76,6 +76,7 @@ int Join(SpaceId id);
  
 /* A unique identifier for an open Nachos file. */
 typedef int OpenFileId;	
+typedef int OpenFileID;
 
 /* when an address space starts up, it has two open files, representing 
  * keyboard input and display output (in UNIX terms, stdin and stdout).
@@ -87,12 +88,12 @@ typedef int OpenFileId;
 #define ConsoleOutput	1  
  
 /* Create a Nachos file, with "name" */
-void Create(char *name);
+int CreateFile(char *name);
 
 /* Open the Nachos file "name", and return an "OpenFileId" that can 
  * be used to read and write to the file.
  */
-OpenFileId Open(char *name);
+OpenFileId Open(char *name, int type);
 
 /* Write "size" bytes from "buffer" to the open file. */
 void Write(char *buffer, int size, OpenFileId id);
