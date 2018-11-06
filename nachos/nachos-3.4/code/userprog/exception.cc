@@ -227,6 +227,18 @@ void ExceptionHandler(ExceptionType which)
 			//return;
 			break;
 		}
+		case SC_Open:
+                        int virAdd;
+                        char* filename;
+                        int type;
+
+                        virAdd = machine->Register(4);
+                        type = machine->Register(5);
+                        filename = User2System(virAdd, MaxFileLength + 1);
+
+                        break;
+                }
+
 		if(type != SC_Halt)
 			InscreasePC();
 		}
