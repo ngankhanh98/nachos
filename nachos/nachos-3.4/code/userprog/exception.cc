@@ -160,7 +160,7 @@ void ExceptionHandler(ExceptionType which)
 			printf("\nShutdown, initiated by user program. ");
 			interrupt->Halt();
 			break;
-		case SC_Create:
+		case SC_CreateFile:
 		{
 			// Input: Dia chi tu vung nho user cua ten file
 			// Output: -1 = Loi, 0 = Thanh cong
@@ -210,6 +210,7 @@ void ExceptionHandler(ExceptionType which)
 			
 			//Tao file thanh cong
 			machine->WriteRegister(2, 0);
+			printf("\nCreate file success");
 			delete filename;
 			//IncreasePC(); //Day thanh ghi lui ve sau de tiep tuc ghi
 			//return;
