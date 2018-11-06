@@ -25,6 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 
+#define MaxFileLength 32
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -54,19 +56,19 @@
 // Purpose: Copy buffer from User memory space to System memory space
 char* User2System(int virtAddr, int limit)
 {
-	int i;// index
+	int i; //chi so index
 	int oneChar;
 	char* kernelBuf = NULL;
-	kernelBuf = new char[limit + 1];//need for terminal string
+	kernelBuf = new char[limit + 1]; //can cho chuoi terminal
 	if (kernelBuf == NULL)
 		return kernelBuf;
+		
 	memset(kernelBuf, 0, limit + 1);
-	//printf("\n Filename u2s:");
+	
 	for (i = 0; i < limit; i++)
 	{
 		machine->ReadMem(virtAddr + i, 1, &oneChar);
 		kernelBuf[i] = (char)oneChar;
-		//printf("%c",kernelBuf[i]);
 		if (oneChar == 0)
 			break;
 	}
@@ -84,7 +86,7 @@ int System2User(int virtAddr, int len, char* buffer)
 	if (len == 0)return len;
 	int i = 0;
 	int oneChar = 0;
-	do {
+	do{
 		oneChar = (int)buffer[i];
 		machine->WriteMem(virtAddr + i, 1, oneChar);
 		i++;
@@ -92,66 +94,126 @@ int System2User(int virtAddr, int len, char* buffer)
 	return i;
 }
 
-void
-ExceptionHandler(ExceptionType which)
+// Ham xu ly ngoai le runtime Exception va system call
+void ExceptionHandler(ExceptionType which)
 {
-	int type = machine->ReadRegister(2);
+    int type = machine->ReadRegister(2);
 
-	switch (which)
-	{
+	// Bien toan cuc cho lop SynchConsole
+	
+	
+	//Bat dau
+	switch (which) {
 	case NoException:
 		return;
+
+	case PageFaultException:
+		DEBUG('a', "\nNo valid translation found");
+		printf("\nNo valid translation found");
+		interrupt->Halt();
+		break;
+
+	case ReadOnlyException:
+		DEBUG('a', "\nWrite attempted to page marked \"read-only\"");
+		printf("\nWrite attempted to page marked \"read-only\"");
+		interrupt->Halt();
+		break;
+
+	case BusErrorException:
+		DEBUG('a', "\nTranslation resulted in an invalid physical address");
+		printf("\nTranslation resulted in an invalid physical address");
+		interrupt->Halt();
+		break;
+
+	case AddressErrorException:
+		DEBUG('a', "\nUnaligned reference or one that was beyond the end of the address space");
+		printf("\nUnaligned reference or one that was beyond the end of the address space");
+		interrupt->Halt();
+		break;
+
+	case OverflowException:
+		DEBUG('a', "\nInteger overflow in add or sub.");
+		printf("\nInteger overflow in add or sub.");
+		interrupt->Halt();
+		break;
+
+	case IllegalInstrException:
+		DEBUG('a', "\nUnimplemented or reserved instr.");
+		printf("\nUnimplemented or reserved instr.");
+		interrupt->Halt();
+		break;
+
+	case NumExceptionTypes:
+		DEBUG('a', "\nNumExceptionTypes");
+		printf("\nNumExceptionTypes");
+		interrupt->Halt();
+		break;
+
 	case SyscallException:
-		switch (type) {
+		switch (type){
+
 		case SC_Halt:
-			DEBUG('a', "\n Shutdown, initated by user programe.");
-			printf("\n\n Shutdown, initated by user programe.");
+			// Input: Khong co
+			// Output: Thong bao tat may
+			// Chuc nang: Tat HDH
+			DEBUG('a', "\nShutdown, initiated by user program. ");
+			printf("\nShutdown, initiated by user program. ");
 			interrupt->Halt();
 			break;
 		case SC_Create:
 		{
+			// Input: Dia chi tu vung nho user cua ten file
+			// Output: -1 = Loi, 0 = Thanh cong
+			// Chuc nang: Tao ra file voi tham so la ten file
 			int virtAddr;
 			char* filename;
-			DEBUG('a', "\n SC_Create call ...");
+			DEBUG('a', "\n SC_CreateFile call ...");
 			DEBUG('a', "\n Reading virtual address of filename");
-			// Lấy tham số tên tập tin từ thanh ghi r4
-			virtAddr = machine->ReadRegister(4);
+
+			virtAddr = machine->ReadRegister(4); //Doc dia chi cua file tu thanh ghi R4
 			DEBUG('a', "\n Reading filename.");
-			// MaxFileLength là = 32
+			
+			//Sao chep khong gian bo nho User sang System, voi do dang toi da la (32 + 1) bytes
 			filename = User2System(virtAddr, MaxFileLength + 1);
-			if (filename == NULL)
+			if (strlen(filename) == 0)
+			{
+				printf("\n File name is not valid");
+				DEBUG('a', "\n File name is not valid");
+				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
+				//IncreasePC();
+				//return;
+				break;
+			}
+			
+			if (filename == NULL)  //Neu khong doc duoc
 			{
 				printf("\n Not enough memory in system");
 				DEBUG('a', "\n Not enough memory in system");
-				machine->WriteRegister(2, -1); // trả về lỗi cho chương
-				// trình người dùng
+				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
 				delete filename;
-				return;
+				//IncreasePC();
+				//return;
+				break;
 			}
 			DEBUG('a', "\n Finish reading filename.");
-			//DEBUG(‘a’,"\n File name : '"<<filename<<"'");
-			// Create file with size = 0
-			// Dùng đối tượng fileSystem của lớp OpenFile để tạo file,
-			// việc tạo file này là sử dụng các thủ tục tạo file của hệ điều
-			// hành Linux, chúng ta không quản ly trực tiếp các block trên
-			// đĩa cứng cấp phát cho file, việc quản ly các block của file
-			// trên ổ đĩa là một đồ án khác
-			if (!fileSystem->Create(filename, 0))
+			
+			if (!fileSystem->Create(filename, 0)) //Tao file bang ham Create cua fileSystem, tra ve ket qua
 			{
+				//Tao file that bai
 				printf("\n Error create file '%s'", filename);
 				machine->WriteRegister(2, -1);
 				delete filename;
-				return;
+				//IncreasePC();
+				//return;
+				break;
 			}
-			machine->WriteRegister(2, 0); // trả về cho chương trình
-			// người dùng thành công
+			
+			//Tao file thanh cong
+			machine->WriteRegister(2, 0);
 			delete filename;
+			//IncreasePC(); //Day thanh ghi lui ve sau de tiep tuc ghi
+			//return;
 			break;
-		}
-		default:
-			printf("\n Unexpected user mode exception (%d %d)",which, type);
-			interrupt->Halt();
-		}
+		}}
 	}
-
 }
