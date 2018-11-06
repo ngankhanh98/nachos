@@ -43,7 +43,7 @@
 				// implementation is available
 class FileSystem {
   public:
-    OpenFile **openfile;	// FileSystem seems like an array, containing 10 OpenFile
+    OpenFile **openfile;	// FileSystem is a table containing 10 OpenFile
     int index;			// Each OpenFile has an index; dont forget openfile[0]: stdin,
 				// openfile[1]: stdout
     FileSystem(bool format) {

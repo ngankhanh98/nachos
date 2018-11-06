@@ -3,8 +3,9 @@
 
 int main()
 {
-	OpenFileId open;
-	open = Open("text.txt", 1);
+	
+	if(Open("text.txt", 1)!=-1)
+		CreateFile("hcm.c");	// create
+
 	Halt();
-	return 0;
 }

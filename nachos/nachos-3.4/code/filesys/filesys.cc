@@ -147,7 +147,7 @@ FileSystem::FileSystem(bool format)
 		openfile[i] = NULL;
 	}
 	openfile[index++] = this->Open("stdin",2);
-	openfile[index++] = this->Open("stdout",3);
+	openfile[index++] = this->Open("stdout", 3);
 	this->Create("stdin",0);
 	this->Create("stdout",0);
 }

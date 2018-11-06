@@ -229,9 +229,10 @@ void ExceptionHandler(ExceptionType which)
 		}
 		case SC_Open:
 		{
-		int bufAddr = machine->ReadRegister(4); // read string pointer from user
-		int type = machine->ReadRegister(5);
-		char *buf;
+			int bufAddr = machine->ReadRegister(4); // read string pointer from user
+			int type = machine->ReadRegister(5);
+			char *buf;
+
 					if (fileSystem->index > 10)
 					{
 						machine->WriteRegister(2, -1);
@@ -241,27 +242,28 @@ void ExceptionHandler(ExceptionType which)
 					buf = User2System(bufAddr, MaxFileLength + 1);
 					if (strcmp(buf,"stdin") == 0)
 					{
-						printf("stdin mode\n");
+						printf("Stdin mode\n");
 						machine->WriteRegister(2, 0);
 						break;
 					}
-					if (strcmp(buf,"stdout") == 0)
+					if (strcmp(buf,"Stdout") == 0)
 					{
 						printf("stdout mode\n");
 						machine->WriteRegister(2, 1);
 						break;
 					}
 					
-					if ((fileSystem->openfile[fileSystem->index] = fileSystem->Open(buf, type)) != NULL)
+		if ((fileSystem->openfile[fileSystem->index]= fileSystem->Open(buf,type)) != NULL && fileSystem->index < 10)
 					{
-						printf("open file successfully");
+						printf("%d\n", fileSystem->index);
+						printf("Open file successfully");
 						machine->WriteRegister(2, fileSystem->index-1);
 					} else 
 					{
-						printf("can not open file");
+						printf("Can not open file");
 						machine->WriteRegister(2, -1);
 					};
-					delete buf;
+					delete[] buf;
 					break;
 					
 		}
