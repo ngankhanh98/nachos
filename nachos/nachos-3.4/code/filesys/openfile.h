@@ -71,7 +71,7 @@ class OpenFile {
 		// 3: stdout
     OpenFile(int sector);		// Open a file whose header is located
 					// at "sector" on the disk
-    OpenFile(int sector, int type);
+    OpenFile(int sector, int _type);
     ~OpenFile();			// Close the file
 
     void Seek(int position); 		// Set the position from which to 
