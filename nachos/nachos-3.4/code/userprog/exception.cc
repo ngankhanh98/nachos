@@ -94,6 +94,17 @@ int System2User(int virtAddr, int len, char* buffer)
 	return i;
 }
 
+// Inscrease program counter
+// Pre-PC register assigned by PC register
+// PC register assigned by Next-PC register
+// Next-PC resgister assigned by 4-byte ahead register
+void InscreasePC()
+{
+	machine->registers[PrevPCReg] = machine->registers[PCReg];
+	machine->registers[PCReg] = machine->registers[NextPCReg];
+	machine->registers[NextPCReg] += 4;	
+}
+
 // Ham xu ly ngoai le runtime Exception va system call
 void ExceptionHandler(ExceptionType which)
 {
@@ -215,6 +226,9 @@ void ExceptionHandler(ExceptionType which)
 			//IncreasePC(); //Day thanh ghi lui ve sau de tiep tuc ghi
 			//return;
 			break;
-		}}
+		}
+		if(type != SC_Halt)
+			InscreasePC();
+		}
 	}
 }
