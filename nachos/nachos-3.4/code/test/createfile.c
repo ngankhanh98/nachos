@@ -1,10 +1,10 @@
 #include "syscall.h"
 #include "copyright.h"
-#define maxlen 32
+//#define maxlen 32
 int main()
 {
-	int len;
-	char filename[maxlen +1];
+	//int len;
+	//char filename[maxlen +1];
 	/*Create a file*/
 	if (CreateFile("text.txt") == -1)
 	{

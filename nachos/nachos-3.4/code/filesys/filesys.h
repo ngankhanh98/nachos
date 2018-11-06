@@ -63,9 +63,9 @@ class FileSystem {
 	{
 	for (int i = 0; i < 10; ++i)
 	{
-		if (openf[i] != NULL) delete openf[i];
+		if (openfile[i] != NULL) delete openfile[i];
 	}
-	delete[] openf;
+	delete[] openfile;
 	}		
 
     bool Create(char *name, int initialSize) { 
@@ -83,6 +83,15 @@ class FileSystem {
 		index++; 	// open one file and index inscrease
 	  return new OpenFile(fileDescriptor);
       }
+
+    OpenFile* Open(char *name, int type) {
+          int fileDescriptor = OpenForReadWrite(name, FALSE);
+
+          if (fileDescriptor == -1) return NULL;
+                index++;        // open one file and index inscrease
+          return new OpenFile(fileDescriptor, type);
+      }
+
 
     bool Remove(char *name) { return Unlink(name) == 0; }
 
@@ -105,7 +114,7 @@ class FileSystem {
 					// Create a file (UNIX creat)
 
     OpenFile* Open(char *name); 	// Open a file (UNIX open)
-
+    OpenFile* Open(char *name, int type);
     bool Remove(char *name);  		// Delete a file (UNIX unlink)
 
     void List();			// List all the files in the file system

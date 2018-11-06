@@ -30,7 +30,7 @@ class OpenFile {
   public:
     int type;
     OpenFile(int f) { file = f; currentOffset = 0; }	// open the file
-    OpenFile(int f, int mode) { file = f; currentOfset = 0; type = mode; } // open file w special mode
+    OpenFile(int f, int mode) { file = f; currentOffset = 0; type = mode; } // open file w special mode
     ~OpenFile() { Close(file); }			// close the file
 
     int ReadAt(char *into, int numBytes, int position) { 

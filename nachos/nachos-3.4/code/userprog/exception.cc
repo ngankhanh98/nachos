@@ -228,17 +228,43 @@ void ExceptionHandler(ExceptionType which)
 			break;
 		}
 		case SC_Open:
-                        int virAdd;
-                        char* filename;
-                        int type;
-
-                        virAdd = machine->Register(4);
-                        type = machine->Register(5);
-                        filename = User2System(virAdd, MaxFileLength + 1);
-
-                        break;
-                }
-
+		{
+		int bufAddr = machine->ReadRegister(4); // read string pointer from user
+		int type = machine->ReadRegister(5);
+		char *buf;
+					if (fileSystem->index > 10)
+					{
+						machine->WriteRegister(2, -1);
+						delete[] buf;
+						break;
+					}
+					buf = User2System(bufAddr, MaxFileLength + 1);
+					if (strcmp(buf,"stdin") == 0)
+					{
+						printf("stdin mode\n");
+						machine->WriteRegister(2, 0);
+						break;
+					}
+					if (strcmp(buf,"stdout") == 0)
+					{
+						printf("stdout mode\n");
+						machine->WriteRegister(2, 1);
+						break;
+					}
+					
+					if ((fileSystem->openfile[fileSystem->index] = fileSystem->Open(buf, type)) != NULL)
+					{
+						printf("open file successfully");
+						machine->WriteRegister(2, fileSystem->index-1);
+					} else 
+					{
+						printf("can not open file");
+						machine->WriteRegister(2, -1);
+					};
+					delete buf;
+					break;
+					
+		}
 		if(type != SC_Halt)
 			InscreasePC();
 		}
