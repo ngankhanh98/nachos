@@ -146,10 +146,15 @@ FileSystem::FileSystem(bool format)
 	{
 		openfile[i] = NULL;
 	}
-	openfile[index++] = this->Open("stdin",2);
-	openfile[index++] = this->Open("stdout", 3);
-	this->Create("stdin",0);
-	this->Create("stdout",0);
+	this->Create("stdin",0); 
+	this->Create("stdout",0); 
+	OpenFile* temp = this->Open("stdin",2);
+	index--;
+	openfile[index++] = temp; 		// index = 1
+	temp = this->Open("stdout", 3);
+	index--;
+	openfile[index++] = this->Open("stdout", 3); 	// index = 2
+	delete temp;
 }
 
 //----------------------------------------------------------------------
