@@ -103,6 +103,11 @@ void InscreasePC()
 	machine->registers[PrevPCReg] = machine->registers[PCReg];
 	machine->registers[PCReg] = machine->registers[NextPCReg];
 	machine->registers[NextPCReg] += 4;	
+	//int counter = machine->ReadRegister(PCReg);
+   	//machine->WriteRegister(PrevPCReg, counter);
+    	//counter = machine->ReadRegister(NextPCReg);
+    	//machine->WriteRegister(PCReg, counter);
+   	//machine->WriteRegister(NextPCReg, counter + 4);
 }
 
 // Ham xu ly ngoai le runtime Exception va system call
@@ -233,10 +238,9 @@ void ExceptionHandler(ExceptionType which)
 			int type = machine->ReadRegister(5);
 			char *buf;
 
-					if (fileSystem->index > 10)
+					if (fileSystem->index >= 10)
 					{
 						machine->WriteRegister(2, -1);
-						delete[] buf;
 						break;
 					}
 					buf = User2System(bufAddr, MaxFileLength + 1);
@@ -253,22 +257,22 @@ void ExceptionHandler(ExceptionType which)
 						break;
 					}
 					
-		if ((fileSystem->openfile[fileSystem->index]= fileSystem->Open(buf,type)) != NULL && fileSystem->index < 10)
+					if ((fileSystem->Open(buf,type)) != NULL)
 					{
-						printf("%d\n", fileSystem->index);
-						printf("Open file successfully");
+						printf("%d ", fileSystem->index);
+						printf("Open file successfully '%s'\n", buf);
 						machine->WriteRegister(2, fileSystem->index-1);
 					} else 
 					{
-						printf("Can not open file");
+						printf("Can not open file '%s'",buf);
 						machine->WriteRegister(2, -1);
 					};
 					delete[] buf;
 					break;
 					
-		}
-		if(type != SC_Halt)
-			InscreasePC();
+		}		
 		}
 	}
+	if(which!=SC_Halt)
+	InscreasePC();
 }

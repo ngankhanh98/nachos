@@ -49,15 +49,21 @@ class FileSystem {
     FileSystem(bool format) {
 	openfile = new OpenFile*[10];
 	index = 0;
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; ++i)
 	{
 		openfile[i] = NULL;
 	}
-	this->Create("stdin", 0);	// FileSystem default has stdim, stdout
-	this->Create("stdout", 0);
-	openfile[index++] = this->Open("stdin",2);
-	openfile[index++] = this->Open("stdout",3);
+	this->Create("stdin",0); 
+	this->Create("stdout",0); 
+	OpenFile* temp = this->Open("stdin",2);
+	index--;
+	openfile[index++] = temp; 		// index = 1
+	temp = this->Open("stdout", 3);
+	index--;
+	openfile[index++] = this->Open("stdout", 3); 	// index = 2
+	delete temp;
 	}
+	
 
     ~FileSystem()
 	{
@@ -80,7 +86,7 @@ class FileSystem {
 	  int fileDescriptor = OpenForReadWrite(name, FALSE);
 
 	  if (fileDescriptor == -1) return NULL;
-		index++; 	// open one file and index inscrease
+	  index++; 	// open one file and index inscrease
 	  return new OpenFile(fileDescriptor);
       }
 
@@ -88,7 +94,7 @@ class FileSystem {
           int fileDescriptor = OpenForReadWrite(name, FALSE);
 
           if (fileDescriptor == -1) return NULL;
-                index++;        // open one file and index inscrease
+          index++;        // open one file and index inscrease
           return new OpenFile(fileDescriptor, type);
       }
 
