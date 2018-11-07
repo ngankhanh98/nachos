@@ -148,12 +148,14 @@ FileSystem::FileSystem(bool format)
 	}
 	this->Create("stdin",0); 
 	this->Create("stdout",0); 
-	OpenFile* temp = this->Open("stdin",2);
-	index--;
-	openfile[index++] = temp; 		// index = 1
+
+	OpenFile* temp = this->Open("stdin",2); // index = 1
+	index--;				// index = 0
+	openfile[index++] = temp;		// index = 1
+
 	temp = this->Open("stdout", 3);
 	index--;
-	openfile[index++] = this->Open("stdout", 3); 	// index = 2
+	openfile[index++] =temp; 	// index = 2
 	delete temp;
 }
 

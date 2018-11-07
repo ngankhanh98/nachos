@@ -49,25 +49,27 @@ class FileSystem {
     FileSystem(bool format) {
 	openfile = new OpenFile*[10];
 	index = 0;
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; i++)
 	{
 		openfile[i] = NULL;
 	}
 	this->Create("stdin",0); 
 	this->Create("stdout",0); 
-	OpenFile* temp = this->Open("stdin",2);
-	index--;
-	openfile[index++] = temp; 		// index = 1
+
+	OpenFile* temp = this->Open("stdin",2); // index = 1
+	index--;				// index = 0
+	openfile[index++] = temp;		// index = 1
+
 	temp = this->Open("stdout", 3);
 	index--;
-	openfile[index++] = this->Open("stdout", 3); 	// index = 2
+	openfile[index++] =temp;	// index = 2
 	delete temp;
 	}
 	
 
     ~FileSystem()
 	{
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; i++)
 	{
 		if (openfile[i] != NULL) delete openfile[i];
 	}

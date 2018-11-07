@@ -238,7 +238,7 @@ void ExceptionHandler(ExceptionType which)
 			int type = machine->ReadRegister(5);
 			char *buf;
 
-					if (fileSystem->index >= 10)
+					if (fileSystem->index > 10)
 					{
 						machine->WriteRegister(2, -1);
 						break;
@@ -250,16 +250,16 @@ void ExceptionHandler(ExceptionType which)
 						machine->WriteRegister(2, 0);
 						break;
 					}
-					if (strcmp(buf,"Stdout") == 0)
+					if (strcmp(buf,"stdout") == 0)
 					{
-						printf("stdout mode\n");
+						printf("Stdout mode\n");
 						machine->WriteRegister(2, 1);
 						break;
 					}
 					
 					if ((fileSystem->Open(buf,type)) != NULL)
 					{
-						printf("%d ", fileSystem->index);
+						
 						printf("Open file successfully '%s'\n", buf);
 						machine->WriteRegister(2, fileSystem->index-1);
 					} else 
