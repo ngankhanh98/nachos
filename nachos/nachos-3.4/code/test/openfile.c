@@ -12,13 +12,21 @@ int main()
 	
 	//CloseFile(1);
 	//CloseFile(3);
+	char b[10];
 	
-	char *a  = "kwfs,zdfnsddfa\0";
+	char *a = "anskg/smgfsdgr\0";
 	Open("3.txt",0);	// index = 2 - WR
 	Open("1.txt",1);	// index = 3 - RO
-	//Read(a,10,3);
+	Open("11.txt", 0); 	// index = 4 - WR
+
+
+	Read(b,10,3);
+	//Read(a,10,2);
+	Write(b,10,4);
 	//Write(a,10,STDOUT);
-	Write(a,12,2);
+	//CloseFile(1);
+	
+	//Write(a,10,4);
 	//Write(a,12,2);
 	return 0;
 }

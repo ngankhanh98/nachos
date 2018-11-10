@@ -297,7 +297,7 @@ void ExceptionHandler(ExceptionType which)
 			int charcount = machine->ReadRegister(5);
 			int openf_id = machine->ReadRegister(6);
 			int i = fileSystem->index;
-			
+			//printf("%d", virtAddr);
 			if(openf_id > i || openf_id < 0 || openf_id == 1) // sdout
 			{
 				printf("Try to open invalib file");
@@ -315,7 +315,7 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
-			int before = temp->seekPosition;
+			//int before = temp->seekPosition;
 			//printf("%d", start);
 			char *buf = User2System(virtAddr, charcount);
 			//printf("%s", buf);
@@ -328,13 +328,12 @@ void ExceptionHandler(ExceptionType which)
 				delete temp;
 				break;
 			}
-			
-			if ((temp->Read(buf, charcount)) > 0)
+			int before = fileSystem->openfile[openf_id]->seekPosition;
+			if ((temp->Read(buf, charcount) ) > 0)
 			{
-				// Copy data from kernel to user space
+			// Copy data from kernel to user space
 				int after = temp->seekPosition;
-				System2User(virtAddr, after - before, buf);
-				//printf("%s", virtAddr);
+				System2User(virtAddr, charcount, buf);
 				machine->WriteRegister(2, after - before + 1);
 				delete[] buf;
 				delete temp;
@@ -375,9 +374,9 @@ void ExceptionHandler(ExceptionType which)
 				machine->WriteRegister(2, -1);
 				break;
 			}
-	
+
 			char *buf = User2System(virtAddr, charcount);
-			printf("%s", buf);
+			//printf("%s", buf);
 			// print out to console
 			if(openf_id == 1)
 			{	
@@ -387,7 +386,7 @@ void ExceptionHandler(ExceptionType which)
 					gSynchConsole->Write(buf+i, 1);
 					i++;
 				}
-				gSynchConsole->Write("\0", 1); // write last character
+				gSynchConsole->Write("\n\0", 2); // write last character
 				machine->WriteRegister(2, i - 1);
 				delete[] buf;
 				delete temp;
@@ -400,8 +399,9 @@ void ExceptionHandler(ExceptionType which)
 			//printf("%s", buf);
 			if((temp->Write(buf, charcount)) != 0)
 			{
-				printf("%s", buf);
+				//printf("%s", buf);
 				int after = temp->seekPosition;
+				System2User(virtAddr, after - before, buf);
 				machine->WriteRegister(2, after - before + 1);
 				delete[] buf;
 				delete temp;
@@ -409,7 +409,7 @@ void ExceptionHandler(ExceptionType which)
 			}
 		}
 		}
-	}
 	if(which!=SC_Halt)
 	InscreasePC();
+	}	
 }
