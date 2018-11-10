@@ -298,17 +298,15 @@ void ExceptionHandler(ExceptionType which)
 			int openf_id = machine->ReadRegister(6);
 			int i = fileSystem->index;
 			
-			//printf("%d", i);
-
 			if(openf_id > i || openf_id < 0 || openf_id == 1) // sdout
 			{
-				//printf("NULL");
+				printf("Try to open invalib file");
 				machine->WriteRegister(2, -1);
 				break;
 			}
 			
 			OpenFile* temp = fileSystem->openfile[openf_id];
-			//printf("%d", openf_id);
+			
 			if(fileSystem->openfile[openf_id] == NULL)
 			{
 				machine->WriteRegister(2, -1);
@@ -317,7 +315,7 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
-			int start = temp->seekPosition;
+			int before = temp->seekPosition;
 			//printf("%d", start);
 			char *buf = User2System(virtAddr, charcount);
 			//printf("%s", buf);
@@ -334,10 +332,10 @@ void ExceptionHandler(ExceptionType which)
 			if ((temp->Read(buf, charcount)) > 0)
 			{
 				// Copy data from kernel to user space
-				int end = temp->seekPosition;
-				System2User(virtAddr, end - start, buf);
-				printf("%s", buf);
-				machine->WriteRegister(2, end - start+1);
+				int after = temp->seekPosition;
+				System2User(virtAddr, after - before, buf);
+				//printf("%s", virtAddr);
+				machine->WriteRegister(2, after - before + 1);
 				delete[] buf;
 				delete temp;
 				break;
@@ -346,6 +344,69 @@ void ExceptionHandler(ExceptionType which)
 			delete[] buf;
 			delete temp;
 			break;
+		}
+		case SC_Write:
+		{
+			int virtAddr = machine->ReadRegister(4);
+			int charcount = machine->ReadRegister(5);
+			int openf_id = machine->ReadRegister(6);
+			int i = fileSystem->index;
+
+			//printf("%d",fileSystem->openfile[openf_id]->type); 
+
+			if(openf_id > i || openf_id < 0 || openf_id == 0) // stdin
+			{
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			OpenFile* temp = fileSystem->openfile[openf_id];
+			if(temp == NULL)
+			{
+				machine->WriteRegister(2, -1);
+				printf("NULL");
+				delete temp;
+				break;
+			}			
+			
+			// read-only file	
+			if(temp->type == 1)
+			{
+				printf("Try to modify read-only file");
+				machine->WriteRegister(2, -1);
+				break;
+			}
+	
+			char *buf = User2System(virtAddr, charcount);
+			printf("%s", buf);
+			// print out to console
+			if(openf_id == 1)
+			{	
+				int i = 0;
+				while(buf[i] != '\0' && buf[i] != '\n')
+				{
+					gSynchConsole->Write(buf+i, 1);
+					i++;
+				}
+				gSynchConsole->Write("\0", 1); // write last character
+				machine->WriteRegister(2, i - 1);
+				delete[] buf;
+				delete temp;
+				break;
+			}
+
+
+			// write into file
+			int before = temp->seekPosition;
+			//printf("%s", buf);
+			if((temp->Write(buf, charcount)) != 0)
+			{
+				printf("%s", buf);
+				int after = temp->seekPosition;
+				machine->WriteRegister(2, after - before + 1);
+				delete[] buf;
+				delete temp;
+				break;
+			}
 		}
 		}
 	}

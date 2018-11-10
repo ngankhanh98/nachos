@@ -31,7 +31,7 @@ class OpenFile {
     int type;
     int seekPosition;
     OpenFile(int f) { file = f; currentOffset = 0; }	// open the file
-    OpenFile(int f, int mode) { file = f; currentOffset = 0; type = mode; } // open file w special mode
+    OpenFile(int f, int mode) { file = f; currentOffset = 0; type = mode; } // open file w special type
     ~OpenFile() { Close(file); }			// close the file
 
     int ReadAt(char *into, int numBytes, int position) { 
@@ -66,13 +66,11 @@ class FileHeader;
 
 class OpenFile {
   public:
-    int type;	// 0: read-only,
-		// 1: readable, writeable,
-		// 2: stdin,
-		// 3: stdout
+    int type;	// 0: readable, writeable,
+		// 1: read-only
     OpenFile(int sector);		// Open a file whose header is located
 					// at "sector" on the disk
-    OpenFile(int sector, int _type);
+    OpenFile(int sector, int mode);
     ~OpenFile();			// Close the file
 
     void Seek(int position); 		// Set the position from which to 
