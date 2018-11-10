@@ -168,6 +168,7 @@ void ExceptionHandler(ExceptionType which)
 		switch (type){
 
 		case SC_Halt:
+		{	
 			// Input: Khong co
 			// Output: Thong bao tat may
 			// Chuc nang: Tat HDH
@@ -175,6 +176,7 @@ void ExceptionHandler(ExceptionType which)
 			printf("\nShutdown, initiated by user program. ");
 			interrupt->Halt();
 			break;
+		}
 		case SC_CreateFile:
 		{
 			// Input: Dia chi tu vung nho user cua ten file
@@ -182,18 +184,18 @@ void ExceptionHandler(ExceptionType which)
 			// Chuc nang: Tao ra file voi tham so la ten file
 			int virtAddr;
 			char* filename;
-			DEBUG('a', "\n SC_CreateFile call ...");
-			DEBUG('a', "\n Reading virtual address of filename");
+			//DEBUG('a', "\n SC_CreateFile call ...");
+			//DEBUG('a', "\n Reading virtual address of filename");
 
 			virtAddr = machine->ReadRegister(4); //Doc dia chi cua file tu thanh ghi R4
-			DEBUG('a', "\n Reading filename.");
+			//DEBUG('a', "\n Reading filename.");
 			
 			//Sao chep khong gian bo nho User sang System, voi do dang toi da la (32 + 1) bytes
 			filename = User2System(virtAddr, MaxFileLength + 1);
 			if (strlen(filename) == 0)
 			{
 				printf("\n File name is not valid");
-				DEBUG('a', "\n File name is not valid");
+				//DEBUG('a', "\n File name is not valid");
 				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
 				delete[] filename;
 				break;
@@ -202,12 +204,12 @@ void ExceptionHandler(ExceptionType which)
 			if (filename == NULL)  //Neu khong doc duoc
 			{
 				printf("\n Not enough memory in system");
-				DEBUG('a', "\n Not enough memory in system");
+				//DEBUG('a', "\n Not enough memory in system");
 				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
 				delete[] filename;
 				break;
 			}
-			DEBUG('a', "\n Finish reading filename.");
+			//DEBUG('a', "\n Finish reading filename.");
 			
 			if (!fileSystem->Create(filename, 0)) //Tao file bang ham Create cua fileSystem, tra ve ket qua
 			{
@@ -219,8 +221,8 @@ void ExceptionHandler(ExceptionType which)
 			}
 			
 			//Tao file thanh cong
-			machine->WriteRegister(2, 0);
 			printf("\nCreate file '%s' success",filename);
+			machine->WriteRegister(2, 0);
 			delete[] filename;
 			break;
 		}
@@ -468,7 +470,8 @@ void ExceptionHandler(ExceptionType which)
 			break;
 		}
 		}
-	if(which!=SC_Halt)
-		InscreasePC();
-	}	
+		if(type!=SC_Halt)
+			InscreasePC();
+	}
+	return;	
 }
