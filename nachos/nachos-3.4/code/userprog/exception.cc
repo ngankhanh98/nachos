@@ -24,9 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-
-#define MaxFileLength 32
-
+#include "filehdr.h"
+#define MaxFileLength 255
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -196,8 +195,7 @@ void ExceptionHandler(ExceptionType which)
 				printf("\n File name is not valid");
 				DEBUG('a', "\n File name is not valid");
 				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
-				//IncreasePC();
-				//return;
+				delete[] filename;
 				break;
 			}
 			
@@ -206,9 +204,7 @@ void ExceptionHandler(ExceptionType which)
 				printf("\n Not enough memory in system");
 				DEBUG('a', "\n Not enough memory in system");
 				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
-				delete filename;
-				//IncreasePC();
-				//return;
+				delete[] filename;
 				break;
 			}
 			DEBUG('a', "\n Finish reading filename.");
@@ -216,20 +212,16 @@ void ExceptionHandler(ExceptionType which)
 			if (!fileSystem->Create(filename, 0)) //Tao file bang ham Create cua fileSystem, tra ve ket qua
 			{
 				//Tao file that bai
-				printf("\n Error create file '%s'", filename);
+				printf("\nError create file '%s'", filename);
 				machine->WriteRegister(2, -1);
-				delete filename;
-				//IncreasePC();
-				//return;
+				delete[] filename;
 				break;
 			}
 			
 			//Tao file thanh cong
 			machine->WriteRegister(2, 0);
-			printf("\nCreate file success");
-			delete filename;
-			//IncreasePC(); //Day thanh ghi lui ve sau de tiep tuc ghi
-			//return;
+			printf("\nCreate file '%s' success",filename);
+			delete[] filename;
 			break;
 		}
 		case SC_Open:
@@ -242,6 +234,7 @@ void ExceptionHandler(ExceptionType which)
 					if (fileSystem->index > 10)
 					{
 						machine->WriteRegister(2, -1);
+						delete[] buf;
 						break;
 					}
 					buf = User2System(bufAddr, MaxFileLength + 1);
@@ -250,6 +243,7 @@ void ExceptionHandler(ExceptionType which)
 						printf("Stdin mode\n");	
 						//fileSystem->index++;
 						machine->WriteRegister(2, 0);
+						delete[] buf;
 						break;
 					}
 					if (strcmp(buf,"stdout") == 0)
@@ -257,13 +251,14 @@ void ExceptionHandler(ExceptionType which)
 						printf("Stdout mode\n");
 						//fileSystem->index++;
 						machine->WriteRegister(2, 1);
+						delete[] buf;
 						break;
 					}
 					
 					if ((fileSystem->openfile[fileSystem->index] = fileSystem->Open(buf,type)) != NULL)
 					{
 						
-						printf("Open file success '%s'\n", buf);
+						printf("\nOpen file success '%s'\n", buf);
 						machine->WriteRegister(2, fileSystem->index-1);
 					} else 
 					{
@@ -288,7 +283,7 @@ void ExceptionHandler(ExceptionType which)
 			
 			fileSystem->openfile[no] == NULL;	
 			machine->WriteRegister(2, 0);
-			printf("Close file success \n");
+			printf("Close file success\n");
 			break;
 		}
 		case SC_Read:
@@ -321,9 +316,10 @@ void ExceptionHandler(ExceptionType which)
 			//printf("%s", buf);
 			if(openf_id == 0) // stdin
 			{
-				int sz = gSynchConsole->Read(buf, charcount);
+				unsigned int sz = gSynchConsole->Read(buf, charcount);
 				System2User(virtAddr, sz, buf);
 				machine->WriteRegister(2, sz);
+
 				delete[] buf;
 				delete temp;
 				break;
@@ -376,7 +372,6 @@ void ExceptionHandler(ExceptionType which)
 			}
 
 			char *buf = User2System(virtAddr, charcount);
-			//printf("%s", buf);
 			// print out to console
 			if(openf_id == 1)
 			{	
@@ -386,7 +381,9 @@ void ExceptionHandler(ExceptionType which)
 					gSynchConsole->Write(buf+i, 1);
 					i++;
 				}
-				gSynchConsole->Write("\n\0", 2); // write last character
+				buf[i] = '\n';
+				gSynchConsole->Write(buf+i,1); // write last character
+
 				machine->WriteRegister(2, i - 1);
 				delete[] buf;
 				delete temp;
@@ -408,8 +405,70 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 		}
+		case SC_Seek:
+		{
+			int pos = machine->ReadRegister(4);
+			int openf_id = machine->ReadRegister(5);
+
+			// seek into files: stdin, stdout, out of fileSystem->index
+			OpenFile *temp;
+			if(openf_id < 1 || openf_id > fileSystem->index || (temp = fileSystem->openfile[openf_id]) == NULL)
+			{	
+				machine->WriteRegister(2, -1);
+				break;			
+			}
+			
+			int len = temp->Length();
+			if(pos>len)
+			{	
+				machine->WriteRegister(2, -1);
+				break;			
+			}
+
+			if(pos == -1)
+				pos = len;
+			temp->Seek(pos);
+			machine->WriteRegister(2, pos);
+
+			delete temp;
+			break;
+			
+		}
+		case SC_Print:
+		{
+			int virtAddr = machine->ReadRegister(4);
+			int i = 0;
+			char *buf = new char[MaxFileLength];
+			buf = User2System(virtAddr, MaxFileLength + 1);
+			while (buf[i] != 0 && buf[i] != '\n')
+			{
+				gSynchConsole->Write(buf+i, 1);
+				i++;
+			}
+			//buf[i] = '\n';
+			gSynchConsole->Write(buf+i,1);
+			delete[] buf;
+			break;
+		}
+		case SC_Scan:
+		{
+			char *buf = new char[MaxFileLength];
+			if (buf == 0) // out of save space
+			{
+				delete[] buf;
+				break;
+			}
+
+			int virtAddr = machine->ReadRegister(4);
+			int length = machine->ReadRegister(5);
+			
+			int sz = gSynchConsole->Read(buf, length);
+			System2User(virtAddr, sz, buf);
+			delete[] buf;
+			break;
+		}
 		}
 	if(which!=SC_Halt)
-	InscreasePC();
+		InscreasePC();
 	}	
 }

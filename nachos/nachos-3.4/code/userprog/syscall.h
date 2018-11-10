@@ -29,7 +29,9 @@
 #define SC_Close	8
 #define SC_Fork		9
 #define SC_Yield	10
-
+#define SC_Seek		11
+#define SC_Print	12
+#define SC_Scan		13
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
@@ -121,8 +123,12 @@ void Fork(void (*func)());
 /* Yield the CPU to another runnable thread, whether in this address space 
  * or not. 
  */
-void Yield();		
+void Yield();
 
+int Seek(int pos, OpenFileId id);	
+
+void Print(char *buffer);
+void Scan(char* buffer, int length);
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */

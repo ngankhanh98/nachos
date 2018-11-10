@@ -54,7 +54,18 @@ class OpenFile {
 		return numWritten;
 		}
 
-    int Length() { Lseek(file, 0, 2); return Tell(file); }
+    int Length() { 
+		int len;
+		Lseek(file, 0, 2); 
+		len = Tell(file); 
+		Lseek(file, currentOffset, 0);
+		return len; 
+		}
+    int Seek(int pos) { 
+		Lseek(file, pos, 0); 
+		currentOffset = Tell(file);
+		return currentOffset;
+		}
     
   private:
     int file;

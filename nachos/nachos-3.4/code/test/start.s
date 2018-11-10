@@ -106,7 +106,8 @@ Write:
 	j	$31
 	.end Write
 
-
+	.globl CloseFile
+	.ent	CloseFile
 CloseFile:
 	addiu $2,$0,SC_Close
 	syscall
@@ -128,6 +129,30 @@ Yield:
 	syscall
 	j	$31
 	.end Yield
+
+	.globl Seek
+	.ent	Seek
+Seek :
+	addiu $2, $0, SC_Seek
+	syscall
+	j	$31
+	.end Seek
+
+	.globl Print
+	.ent	Print
+Print :
+	addiu $2, $0, SC_Print
+	syscall
+	j	$31
+	.end Print
+
+	.globl Scan
+	.ent	Scan
+Scan :
+	addiu $2, $0, SC_Scan
+	syscall
+	j	$31
+	.end Scan
 
 /* dummy function to keep gcc happy */
         .globl  __main
