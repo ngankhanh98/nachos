@@ -260,7 +260,7 @@ void ExceptionHandler(ExceptionType which)
 						break;
 					}
 					
-					if ((fileSystem->Open(buf,type)) != NULL)
+					if ((fileSystem->openfile[fileSystem->index] = fileSystem->Open(buf,type)) != NULL)
 					{
 						
 						printf("Open file success '%s'\n", buf);
@@ -286,13 +286,67 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 			
-			fileSystem->openfile[no] == NULL;
-			//delete fileSystem->openfile[no];		
+			fileSystem->openfile[no] == NULL;	
 			machine->WriteRegister(2, 0);
 			printf("Close file success \n");
 			break;
 		}
-	
+		case SC_Read:
+		{
+			int virtAddr = machine->ReadRegister(4);
+			int charcount = machine->ReadRegister(5);
+			int openf_id = machine->ReadRegister(6);
+			int i = fileSystem->index;
+			
+			//printf("%d", i);
+
+			if(openf_id > i || openf_id < 0 || openf_id == 1) // sdout
+			{
+				//printf("NULL");
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			
+			OpenFile* temp = fileSystem->openfile[openf_id];
+			//printf("%d", openf_id);
+			if(fileSystem->openfile[openf_id] == NULL)
+			{
+				machine->WriteRegister(2, -1);
+				printf("NULL");
+				//delete temp;
+				break;
+			}
+
+			int start = temp->seekPosition;
+			//printf("%d", start);
+			char *buf = User2System(virtAddr, charcount);
+			//printf("%s", buf);
+			if(openf_id == 0) // stdin
+			{
+				int sz = gSynchConsole->Read(buf, charcount);
+				System2User(virtAddr, sz, buf);
+				machine->WriteRegister(2, sz);
+				delete[] buf;
+				delete temp;
+				break;
+			}
+			
+			if ((temp->Read(buf, charcount)) > 0)
+			{
+				// Copy data from kernel to user space
+				int end = temp->seekPosition;
+				System2User(virtAddr, end - start, buf);
+				printf("%s", buf);
+				machine->WriteRegister(2, end - start+1);
+				delete[] buf;
+				delete temp;
+				break;
+			}
+			machine->WriteRegister(2, -1);
+			delete[] buf;
+			delete temp;
+			break;
+		}
 		}
 	}
 	if(which!=SC_Halt)
