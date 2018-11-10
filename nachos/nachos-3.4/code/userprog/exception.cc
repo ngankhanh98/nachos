@@ -238,6 +238,7 @@ void ExceptionHandler(ExceptionType which)
 			int type = machine->ReadRegister(5);
 			char *buf;
 
+
 					if (fileSystem->index > 10)
 					{
 						machine->WriteRegister(2, -1);
@@ -246,13 +247,15 @@ void ExceptionHandler(ExceptionType which)
 					buf = User2System(bufAddr, MaxFileLength + 1);
 					if (strcmp(buf,"stdin") == 0)
 					{
-						printf("Stdin mode\n");
+						printf("Stdin mode\n");	
+						//fileSystem->index++;
 						machine->WriteRegister(2, 0);
 						break;
 					}
 					if (strcmp(buf,"stdout") == 0)
 					{
 						printf("Stdout mode\n");
+						//fileSystem->index++;
 						machine->WriteRegister(2, 1);
 						break;
 					}
@@ -260,17 +263,36 @@ void ExceptionHandler(ExceptionType which)
 					if ((fileSystem->Open(buf,type)) != NULL)
 					{
 						
-						printf("Open file successfully '%s'\n", buf);
+						printf("Open file success '%s'\n", buf);
 						machine->WriteRegister(2, fileSystem->index-1);
 					} else 
 					{
 						printf("Can not open file '%s'",buf);
 						machine->WriteRegister(2, -1);
 					};
-					delete[] buf;
-					break;
+			delete[] buf;
+			break;
 					
-		}		
+		}	
+		case SC_Close:
+		{
+			int no = machine->ReadRegister(4);
+			int i = fileSystem->index;	
+
+			if(i < no) 
+			{
+				printf("Close file failed \n");
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			
+			fileSystem->openfile[no] == NULL;
+			//delete fileSystem->openfile[no];		
+			machine->WriteRegister(2, 0);
+			printf("Close file success \n");
+			break;
+		}
+	
 		}
 	}
 	if(which!=SC_Halt)
