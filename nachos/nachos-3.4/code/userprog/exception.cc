@@ -238,6 +238,7 @@ void ExceptionHandler(ExceptionType which)
 			int type = machine->ReadRegister(5);
 			char *buf;
 
+
 					if (fileSystem->index > 10)
 					{
 						machine->WriteRegister(2, -1);
@@ -246,31 +247,167 @@ void ExceptionHandler(ExceptionType which)
 					buf = User2System(bufAddr, MaxFileLength + 1);
 					if (strcmp(buf,"stdin") == 0)
 					{
-						printf("Stdin mode\n");
+						printf("Stdin mode\n");	
+						//fileSystem->index++;
 						machine->WriteRegister(2, 0);
 						break;
 					}
 					if (strcmp(buf,"stdout") == 0)
 					{
 						printf("Stdout mode\n");
+						//fileSystem->index++;
 						machine->WriteRegister(2, 1);
 						break;
 					}
 					
-					if ((fileSystem->Open(buf,type)) != NULL)
+					if ((fileSystem->openfile[fileSystem->index] = fileSystem->Open(buf,type)) != NULL)
 					{
 						
-						printf("Open file successfully '%s'\n", buf);
+						printf("Open file success '%s'\n", buf);
 						machine->WriteRegister(2, fileSystem->index-1);
 					} else 
 					{
 						printf("Can not open file '%s'",buf);
 						machine->WriteRegister(2, -1);
 					};
-					delete[] buf;
-					break;
+			delete[] buf;
+			break;
 					
-		}		
+		}	
+		case SC_Close:
+		{
+			int no = machine->ReadRegister(4);
+			int i = fileSystem->index;	
+
+			if(i < no) 
+			{
+				printf("Close file failed \n");
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			
+			fileSystem->openfile[no] == NULL;	
+			machine->WriteRegister(2, 0);
+			printf("Close file success \n");
+			break;
+		}
+		case SC_Read:
+		{
+			int virtAddr = machine->ReadRegister(4);
+			int charcount = machine->ReadRegister(5);
+			int openf_id = machine->ReadRegister(6);
+			int i = fileSystem->index;
+			
+			if(openf_id > i || openf_id < 0 || openf_id == 1) // sdout
+			{
+				printf("Try to open invalib file");
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			
+			OpenFile* temp = fileSystem->openfile[openf_id];
+			
+			if(fileSystem->openfile[openf_id] == NULL)
+			{
+				machine->WriteRegister(2, -1);
+				printf("NULL");
+				//delete temp;
+				break;
+			}
+
+			int before = temp->seekPosition;
+			//printf("%d", start);
+			char *buf = User2System(virtAddr, charcount);
+			//printf("%s", buf);
+			if(openf_id == 0) // stdin
+			{
+				int sz = gSynchConsole->Read(buf, charcount);
+				System2User(virtAddr, sz, buf);
+				machine->WriteRegister(2, sz);
+				delete[] buf;
+				delete temp;
+				break;
+			}
+			
+			if ((temp->Read(buf, charcount)) > 0)
+			{
+				// Copy data from kernel to user space
+				int after = temp->seekPosition;
+				System2User(virtAddr, after - before, buf);
+				//printf("%s", virtAddr);
+				machine->WriteRegister(2, after - before + 1);
+				delete[] buf;
+				delete temp;
+				break;
+			}
+			machine->WriteRegister(2, -1);
+			delete[] buf;
+			delete temp;
+			break;
+		}
+		case SC_Write:
+		{
+			int virtAddr = machine->ReadRegister(4);
+			int charcount = machine->ReadRegister(5);
+			int openf_id = machine->ReadRegister(6);
+			int i = fileSystem->index;
+
+			//printf("%d",fileSystem->openfile[openf_id]->type); 
+
+			if(openf_id > i || openf_id < 0 || openf_id == 0) // stdin
+			{
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			OpenFile* temp = fileSystem->openfile[openf_id];
+			if(temp == NULL)
+			{
+				machine->WriteRegister(2, -1);
+				printf("NULL");
+				delete temp;
+				break;
+			}			
+			
+			// read-only file	
+			if(temp->type == 1)
+			{
+				printf("Try to modify read-only file");
+				machine->WriteRegister(2, -1);
+				break;
+			}
+	
+			char *buf = User2System(virtAddr, charcount);
+			printf("%s", buf);
+			// print out to console
+			if(openf_id == 1)
+			{	
+				int i = 0;
+				while(buf[i] != '\0' && buf[i] != '\n')
+				{
+					gSynchConsole->Write(buf+i, 1);
+					i++;
+				}
+				gSynchConsole->Write("\0", 1); // write last character
+				machine->WriteRegister(2, i - 1);
+				delete[] buf;
+				delete temp;
+				break;
+			}
+
+
+			// write into file
+			int before = temp->seekPosition;
+			//printf("%s", buf);
+			if((temp->Write(buf, charcount)) != 0)
+			{
+				printf("%s", buf);
+				int after = temp->seekPosition;
+				machine->WriteRegister(2, after - before + 1);
+				delete[] buf;
+				delete temp;
+				break;
+			}
+		}
 		}
 	}
 	if(which!=SC_Halt)
