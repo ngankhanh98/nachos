@@ -106,13 +106,12 @@ Write:
 	j	$31
 	.end Write
 
-	.globl Close
-	.ent	Close
-Close:
+
+CloseFile:
 	addiu $2,$0,SC_Close
 	syscall
 	j	$31
-	.end Close
+	.end CloseFile
 
 	.globl Fork
 	.ent	Fork

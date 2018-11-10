@@ -29,6 +29,7 @@
 class OpenFile {
   public:
     int type;
+    int seekPosition;
     OpenFile(int f) { file = f; currentOffset = 0; }	// open the file
     OpenFile(int f, int mode) { file = f; currentOffset = 0; type = mode; } // open file w special mode
     ~OpenFile() { Close(file); }			// close the file
@@ -92,10 +93,11 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
-    
+    int seekPosition;			// Current position within the file
+
   private:
     FileHeader *hdr;			// Header for this file 
-    int seekPosition;			// Current position within the file
+    
 };
 
 #endif // FILESYS
