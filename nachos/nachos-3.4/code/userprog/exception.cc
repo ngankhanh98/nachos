@@ -102,11 +102,6 @@ void InscreasePC()
 	machine->registers[PrevPCReg] = machine->registers[PCReg];
 	machine->registers[PCReg] = machine->registers[NextPCReg];
 	machine->registers[NextPCReg] += 4;
-	//int counter = machine->ReadRegister(PCReg);
-	//machine->WriteRegister(PrevPCReg, counter);
-		//counter = machine->ReadRegister(NextPCReg);
-		//machine->WriteRegister(PCReg, counter);
-	//machine->WriteRegister(NextPCReg, counter + 4);
 }
 
 // Ham xu ly ngoai le runtime Exception va system call
@@ -115,46 +110,8 @@ void ExceptionHandler(ExceptionType which)
 	int type = machine->ReadRegister(2);
 
 	// Bien toan cuc cho lop SynchConsole
-	//Bat dau
+	// Bat dau
 	switch (which) {
-	case NoException:
-		return;
-
-	case PageFaultException:
-		printf("\nNo valid translation found");
-		interrupt->Halt();
-		break;
-
-	case ReadOnlyException:
-		printf("\nWrite attempted to page marked \"read-only\"");
-		interrupt->Halt();
-		break;
-
-	case BusErrorException:
-		printf("\nTranslation resulted in an invalid physical address");
-		interrupt->Halt();
-		break;
-
-	case AddressErrorException:
-		printf("\nUnaligned reference or one that was beyond the end of the address space");
-		interrupt->Halt();
-		break;
-
-	case OverflowException:
-		printf("\nInteger overflow in add or sub.");
-		interrupt->Halt();
-		break;
-
-	case IllegalInstrException:
-		printf("\nUnimplemented or reserved instr.");
-		interrupt->Halt();
-		break;
-
-	case NumExceptionTypes:
-		printf("\nNumExceptionTypes");
-		interrupt->Halt();
-		break;
-
 	case SyscallException:
 		switch (type) {
 
@@ -163,30 +120,21 @@ void ExceptionHandler(ExceptionType which)
 			// Input: Khong co
 			// Output: Thong bao tat may
 			// Chuc nang: Tat HDH
-			DEBUG('a', "\nShutdown, initiated by user program. ");
-			printf("\nShutdown, initiated by user program. ");
+			printf("\nShutdown, initiated by user program.\n");
 			interrupt->Halt();
-			break;
 		}
+		break;
 		case SC_CreateFile:
 		{
-			// Input: Dia chi tu vung nho user cua ten file
-			// Output: -1 = Loi, 0 = Thanh cong
-			// Chuc nang: Tao ra file voi tham so la ten file
 			int virtAddr;
 			char* filename;
-			//DEBUG('a', "\n SC_CreateFile call ...");
-			//DEBUG('a', "\n Reading virtual address of filename");
+			
+			virtAddr = machine->ReadRegister(4); 
 
-			virtAddr = machine->ReadRegister(4); //Doc dia chi cua file tu thanh ghi R4
-			//DEBUG('a', "\n Reading filename.");
-
-			//Sao chep khong gian bo nho User sang System, voi do dang toi da la (32 + 1) bytes
 			filename = User2System(virtAddr, MaxFileLength + 1);
 			if (strlen(filename) == 0)
 			{
 				printf("\n File name is not valid");
-				//DEBUG('a', "\n File name is not valid");
 				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
 				delete[] filename;
 				break;
@@ -258,7 +206,7 @@ void ExceptionHandler(ExceptionType which)
 			{
 				printf("Can not open file '%s'", buf);
 				machine->WriteRegister(2, -1);
-			};
+			}
 			delete[] buf;
 			break;
 
@@ -276,6 +224,7 @@ void ExceptionHandler(ExceptionType which)
 			}
 
 			fileSystem->openfile[no] == NULL;
+			delete fileSystem->openfile[no];
 			machine->WriteRegister(2, 0);
 			printf("Close file success\n");
 			break;
@@ -294,12 +243,10 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
-			OpenFile* temp = fileSystem->openfile[openf_id];
-
 			if (fileSystem->openfile[openf_id] == NULL)
 			{
 				machine->WriteRegister(2, -1);
-				printf("NULL");
+				//printf("NULL");
 				//delete temp;
 				break;
 			}
@@ -310,29 +257,28 @@ void ExceptionHandler(ExceptionType which)
 			//printf("%s", buf);
 			if (openf_id == 0) // stdin
 			{
-				unsigned int sz = gSynchConsole->Read(buf, charcount);
+				int sz = gSynchConsole->Read(buf, charcount);
 				System2User(virtAddr, sz, buf);
 				machine->WriteRegister(2, sz);
 
 				delete[] buf;
-				delete temp;
+				//delete temp;
 				break;
 			}
-			int before = fileSystem->openfile[openf_id]->seekPosition;
-			if ((temp->Read(buf, charcount)) > 0)
+			int before = fileSystem->openfile[openf_id]->GetCurrentPos();
+			if ((fileSystem->openfile[openf_id]->Read(buf, charcount)) > 0)
 			{
 				// Copy data from kernel to user space
-				int after = temp->seekPosition;
+				int after = fileSystem->openfile[openf_id]->GetCurrentPos();
 				System2User(virtAddr, charcount, buf);
 				machine->WriteRegister(2, after - before + 1);
-				delete[] buf;
-				delete temp;
-				break;
+			} else {
+				machine->WriteRegister(2, -1);
 			}
-			machine->WriteRegister(2, -1);
 			delete[] buf;
-			delete temp;
+			//delete temp;
 			break;
+			
 		}
 		case SC_Write:
 		{
@@ -348,17 +294,17 @@ void ExceptionHandler(ExceptionType which)
 				machine->WriteRegister(2, -1);
 				break;
 			}
-			OpenFile* temp = fileSystem->openfile[openf_id];
-			if (temp == NULL)
+			
+			if (fileSystem->openfile[openf_id] == NULL)
 			{
 				machine->WriteRegister(2, -1);
-				printf("NULL");
-				delete temp;
+				//printf("NULL");
+				//delete temp;
 				break;
 			}
 
 			// read-only file	
-			if (temp->type == 1)
+			if (fileSystem->openfile[openf_id]->type == 1)
 			{
 				printf("Try to modify read-only file");
 				machine->WriteRegister(2, -1);
@@ -380,22 +326,22 @@ void ExceptionHandler(ExceptionType which)
 
 				machine->WriteRegister(2, i - 1);
 				delete[] buf;
-				delete temp;
+				//delete temp;
 				break;
 			}
 
 
 			// write into file
-			int before = temp->seekPosition;
+			int before = fileSystem->openfile[openf_id]->GetCurrentPos();
 			//printf("%s", buf);
-			if ((temp->Write(buf, charcount)) != 0)
+			if ((fileSystem->openfile[openf_id]->Write(buf, charcount)) != 0)
 			{
 				//printf("%s", buf);
-				int after = temp->seekPosition;
+				int after = fileSystem->openfile[openf_id]->GetCurrentPos();
 				System2User(virtAddr, after - before, buf);
 				machine->WriteRegister(2, after - before + 1);
 				delete[] buf;
-				delete temp;
+				//delete temp;
 				break;
 			}
 		}
@@ -405,14 +351,14 @@ void ExceptionHandler(ExceptionType which)
 			int openf_id = machine->ReadRegister(5);
 
 			// seek into files: stdin, stdout, out of fileSystem->index
-			OpenFile *temp;
-			if (openf_id < 1 || openf_id > fileSystem->index || (temp = fileSystem->openfile[openf_id]) == NULL)
+			if (openf_id < 1 || openf_id > fileSystem->index || fileSystem->openfile[openf_id] == NULL)
 			{
 				machine->WriteRegister(2, -1);
 				break;
 			}
 
-			int len = temp->Length();
+			int len = fileSystem->openfile[openf_id]->Length();
+			//printf("%d", len);
 			if (pos > len)
 			{
 				machine->WriteRegister(2, -1);
@@ -421,12 +367,10 @@ void ExceptionHandler(ExceptionType which)
 
 			if (pos == -1)
 				pos = len;
-			temp->Seek(pos);
+
+			fileSystem->openfile[openf_id]->Seek(pos);
 			machine->WriteRegister(2, pos);
-
-			delete temp;
 			break;
-
 		}
 		case SC_Print:
 		{
@@ -461,10 +405,58 @@ void ExceptionHandler(ExceptionType which)
 			delete[] buf;
 			break;
 		}
+		case SC_PrintChar:
+		{
+			char ch;
+			ch = (char) machine->ReadRegister(4);
+			gSynchConsole->Write(&ch, 1);
+			break;
 		}
-		if (type != SC_Halt)
-			InscreasePC();
+		}
+		
+
+	InscreasePC();
 		break;
+
+	case NoException:
+		interrupt->Halt();
+		return;
+
+	case PageFaultException:
+		printf("\nNo valid translation found.\n");
+		ASSERT(FALSE);
+		break;
+
+	case ReadOnlyException:
+		printf("\nWrite attempted to page marked \"read-only\".\n");
+		ASSERT(FALSE);
+		break;
+
+	case BusErrorException:
+		printf("\nTranslation resulted in an invalid physical address.\n");
+		ASSERT(FALSE);
+		break;
+
+	case AddressErrorException:
+		printf("\nUnaligned reference or one that was beyond the end of the address space.\n");
+		ASSERT(FALSE);
+		break;
+
+	case OverflowException:
+		printf("\nInteger overflow in add or sub.\n");
+		ASSERT(FALSE);
+		break;
+
+	case IllegalInstrException:
+		printf("\nUnimplemented or reserved instr\n");
+		ASSERT(FALSE);
+		break;
+
+	case NumExceptionTypes:
+		printf("\nNumExceptionTypes\n");
+		ASSERT(FALSE);
+		break;
+
 	}
 	return;
 }

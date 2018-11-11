@@ -9,7 +9,7 @@
 int main()
 {
 	char *a;
-	Print("----------------------------------\n\0");
+	Print("----------------------------------\0");
 	Print("Enter a string: \0");
 	Scan(a, MAX_LENGTH);
 	Print(a);	
