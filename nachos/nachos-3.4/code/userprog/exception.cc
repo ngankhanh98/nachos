@@ -104,22 +104,17 @@ void InscreasePC()
 	machine->registers[NextPCReg] += 4;
 }
 
-// Ham xu ly ngoai le runtime Exception va system call
+
 void ExceptionHandler(ExceptionType which)
 {
 	int type = machine->ReadRegister(2);
 
-	// Bien toan cuc cho lop SynchConsole
-	// Bat dau
 	switch (which) {
 	case SyscallException:
 		switch (type) {
 
 		case SC_Halt:
 		{
-			// Input: Khong co
-			// Output: Thong bao tat may
-			// Chuc nang: Tat HDH
 			printf("\nShutdown, initiated by user program.\n");
 			interrupt->Halt();
 		}
@@ -130,36 +125,32 @@ void ExceptionHandler(ExceptionType which)
 			char* filename;
 			
 			virtAddr = machine->ReadRegister(4); 
-
 			filename = User2System(virtAddr, MaxFileLength + 1);
+
 			if (strlen(filename) == 0)
 			{
-				printf("\n File name is not valid");
-				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
+				printf("\nFile name is not valid");
+				machine->WriteRegister(2, -1); 
 				delete[] filename;
 				break;
 			}
 
-			if (filename == NULL)  //Neu khong doc duoc
+			if (filename == NULL)  
 			{
 				printf("\n Not enough memory in system");
-				//DEBUG('a', "\n Not enough memory in system");
-				machine->WriteRegister(2, -1); //Return -1 vao thanh ghi R2
+				machine->WriteRegister(2, -1); 
 				delete[] filename;
 				break;
 			}
-			//DEBUG('a', "\n Finish reading filename.");
 
-			if (!fileSystem->Create(filename, 0)) //Tao file bang ham Create cua fileSystem, tra ve ket qua
+			if (!fileSystem->Create(filename, 0)) 
 			{
-				//Tao file that bai
 				printf("\nError create file '%s'", filename);
 				machine->WriteRegister(2, -1);
 				delete[] filename;
 				break;
 			}
 
-			//Tao file thanh cong
 			printf("\nCreate file '%s' success", filename);
 			machine->WriteRegister(2, 0);
 			delete[] filename;
@@ -167,22 +158,23 @@ void ExceptionHandler(ExceptionType which)
 		}
 		case SC_Open:
 		{
-			int bufAddr = machine->ReadRegister(4); // read string pointer from user
+			int bufAddr = machine->ReadRegister(4); 
 			int type = machine->ReadRegister(5);
 			char *buf;
 
-
+			// if already opened 10 files
 			if (fileSystem->index > 10)
 			{
 				machine->WriteRegister(2, -1);
 				delete[] buf;
 				break;
 			}
+				
+			// if open stdin or stdout, number of openfiles dont increase
 			buf = User2System(bufAddr, MaxFileLength + 1);
 			if (strcmp(buf, "stdin") == 0)
 			{
 				printf("Stdin mode\n");
-				//fileSystem->index++;
 				machine->WriteRegister(2, 0);
 				delete[] buf;
 				break;
@@ -190,19 +182,21 @@ void ExceptionHandler(ExceptionType which)
 			if (strcmp(buf, "stdout") == 0)
 			{
 				printf("Stdout mode\n");
-				//fileSystem->index++;
 				machine->WriteRegister(2, 1);
 				delete[] buf;
 				break;
 			}
 
+			// if opening file succeed
+			// should not use OpenFile* temp to store = fileSystem->openfile[fileSystem->index]
+			// cause, i dont have a method to destroy this pointer correctly
 			if ((fileSystem->openfile[fileSystem->index] = fileSystem->Open(buf, type)) != NULL)
 			{
 
 				printf("\nOpen file success '%s'\n", buf);
 				machine->WriteRegister(2, fileSystem->index - 1);
 			}
-			else
+			else 
 			{
 				printf("Can not open file '%s'", buf);
 				machine->WriteRegister(2, -1);
@@ -216,6 +210,7 @@ void ExceptionHandler(ExceptionType which)
 			int no = machine->ReadRegister(4);
 			int i = fileSystem->index;
 
+			// opened [i] files, and want to close file No.[no] (no > i) --> go wrong
 			if (i < no)
 			{
 				printf("Close file failed \n");
@@ -231,13 +226,14 @@ void ExceptionHandler(ExceptionType which)
 		}
 		case SC_Read:
 		{
+			
 			int virtAddr = machine->ReadRegister(4);
 			int charcount = machine->ReadRegister(5);
 			int openf_id = machine->ReadRegister(6);
 			int i = fileSystem->index;
-			//printf("%d", virtAddr);
-			if (openf_id > i || openf_id < 0 || openf_id == 1) // sdout
-			{
+			
+			if (openf_id > i || openf_id < 0 || openf_id == 1) // go wrong <-- if try open `out of domain` fileSystem (10 openfile) 
+			{						 	// or try to read stdout
 				printf("Try to open invalib file");
 				machine->WriteRegister(2, -1);
 				break;
@@ -246,37 +242,32 @@ void ExceptionHandler(ExceptionType which)
 			if (fileSystem->openfile[openf_id] == NULL)
 			{
 				machine->WriteRegister(2, -1);
-				//printf("NULL");
-				//delete temp;
 				break;
 			}
 
-			//int before = temp->seekPosition;
-			//printf("%d", start);
 			char *buf = User2System(virtAddr, charcount);
-			//printf("%s", buf);
-			if (openf_id == 0) // stdin
+			
+			if (openf_id == 0) // read from stdin
 			{
 				int sz = gSynchConsole->Read(buf, charcount);
 				System2User(virtAddr, sz, buf);
 				machine->WriteRegister(2, sz);
 
 				delete[] buf;
-				//delete temp;
 				break;
 			}
+			
 			int before = fileSystem->openfile[openf_id]->GetCurrentPos();
 			if ((fileSystem->openfile[openf_id]->Read(buf, charcount)) > 0)
 			{
-				// Copy data from kernel to user space
+				// copy data from kernel to user space
 				int after = fileSystem->openfile[openf_id]->GetCurrentPos();
 				System2User(virtAddr, charcount, buf);
-				machine->WriteRegister(2, after - before + 1);
+				machine->WriteRegister(2, after - before + 1);	// after & before just used for returning
 			} else {
 				machine->WriteRegister(2, -1);
 			}
 			delete[] buf;
-			//delete temp;
 			break;
 			
 		}
@@ -287,9 +278,8 @@ void ExceptionHandler(ExceptionType which)
 			int openf_id = machine->ReadRegister(6);
 			int i = fileSystem->index;
 
-			//printf("%d",fileSystem->openfile[openf_id]->type); 
 
-			if (openf_id > i || openf_id < 0 || openf_id == 0) // stdin
+			if (openf_id > i || openf_id < 0 || openf_id == 0) // `out of domain` filesys + try to write to stdin 
 			{
 				machine->WriteRegister(2, -1);
 				break;
@@ -298,8 +288,6 @@ void ExceptionHandler(ExceptionType which)
 			if (fileSystem->openfile[openf_id] == NULL)
 			{
 				machine->WriteRegister(2, -1);
-				//printf("NULL");
-				//delete temp;
 				break;
 			}
 
@@ -311,8 +299,8 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 
+			// write to console
 			char *buf = User2System(virtAddr, charcount);
-			// print out to console
 			if (openf_id == 1)
 			{
 				int i = 0;
@@ -326,22 +314,18 @@ void ExceptionHandler(ExceptionType which)
 
 				machine->WriteRegister(2, i - 1);
 				delete[] buf;
-				//delete temp;
 				break;
 			}
 
 
 			// write into file
 			int before = fileSystem->openfile[openf_id]->GetCurrentPos();
-			//printf("%s", buf);
 			if ((fileSystem->openfile[openf_id]->Write(buf, charcount)) != 0)
 			{
-				//printf("%s", buf);
 				int after = fileSystem->openfile[openf_id]->GetCurrentPos();
 				System2User(virtAddr, after - before, buf);
 				machine->WriteRegister(2, after - before + 1);
 				delete[] buf;
-				//delete temp;
 				break;
 			}
 		}
@@ -350,22 +334,22 @@ void ExceptionHandler(ExceptionType which)
 			int pos = machine->ReadRegister(4);
 			int openf_id = machine->ReadRegister(5);
 
-			// seek into files: stdin, stdout, out of fileSystem->index
+			// seek into files: stdin, stdout, `out of domain` fileSystem
 			if (openf_id < 1 || openf_id > fileSystem->index || fileSystem->openfile[openf_id] == NULL)
 			{
 				machine->WriteRegister(2, -1);
 				break;
 			}
 
-			int len = fileSystem->openfile[openf_id]->Length();
-			//printf("%d", len);
-			if (pos > len)
+			int len = fileSystem->openfile[openf_id]->Length();	// file size
+
+			if (pos > len)	// try to move file ptr to pos, pos > len --> wrong
 			{
 				machine->WriteRegister(2, -1);
 				break;
 			}
 
-			if (pos == -1)
+			if (pos == -1)	// move file ptr to the begining of file
 				pos = len;
 
 			fileSystem->openfile[openf_id]->Seek(pos);
@@ -374,6 +358,8 @@ void ExceptionHandler(ExceptionType which)
 		}
 		case SC_Print:
 		{
+			// alternative syscall
+			// similar to Write(char *buffer, int charcount, OpenFileID id), where id = 1
 			int virtAddr = machine->ReadRegister(4);
 			int i = 0;
 			char *buf = new char[MaxFileLength];
@@ -383,13 +369,14 @@ void ExceptionHandler(ExceptionType which)
 				gSynchConsole->Write(buf + i, 1);
 				i++;
 			}
-			//buf[i] = '\n';
+
 			gSynchConsole->Write(buf + i, 1);
 			delete[] buf;
 			break;
 		}
 		case SC_Scan:
 		{
+			// alternative syscall
 			char *buf = new char[MaxFileLength];
 			if (buf == 0) // out of save space
 			{
