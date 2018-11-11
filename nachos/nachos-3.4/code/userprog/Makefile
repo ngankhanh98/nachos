@@ -366,7 +366,9 @@ exception.o: ../userprog/exception.cc /usr/include/stdc-predef.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
  ../threads/list.h ../machine/stats.h ../machine/timer.h \
- ../threads/synchcons.h ../machine/console.h ../userprog/syscall.h
+ ../threads/synchcons.h ../machine/console.h ../userprog/syscall.h \
+ ../filesys/filehdr.h ../machine/disk.h ../userprog/bitmap.h \
+ ../filesys/openfile.h
 progtest.o: ../userprog/progtest.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../threads/system.h ../threads/copyright.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \

@@ -54,8 +54,22 @@ class OpenFile {
 		return numWritten;
 		}
 
-    int Length() { Lseek(file, 0, 2); return Tell(file); }
-    
+    int Length() { 
+		int len;
+		Lseek(file, 0, 2); 
+		len = Tell(file); 
+		Lseek(file, currentOffset, 0);
+		return len; 
+		}
+    int Seek(int pos) { 
+		Lseek(file, pos, 0); 
+		currentOffset = Tell(file);
+		return currentOffset;
+		}
+    int GetCurrentPos() { 
+		currentOffset = Tell(file);
+		return currentOffset;
+		}
   private:
     int file;
     int currentOffset;
@@ -91,11 +105,14 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
-    int seekPosition;			// Current position within the file
-
+    
+    int GetCurrentPos()
+	{
+		return seekPosition;
+	}
   private:
     FileHeader *hdr;			// Header for this file 
-    
+    int seekPosition;			// Current position within the file
 };
 
 #endif // FILESYS
