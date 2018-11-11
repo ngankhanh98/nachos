@@ -9,8 +9,7 @@ int main(int argc, char* argv[])
 {
 	char *a;
 	char *filename;	
-	
-	Print("----------------------------------\n\0");
+
 	Print("Enter filename: \0");
 	Scan(filename, MAX_LENGTH);
 	
