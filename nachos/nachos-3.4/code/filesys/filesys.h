@@ -41,6 +41,7 @@
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
 				// implementation is available
+
 class FileSystem {
   public:
     OpenFile **openfile;	// FileSystem is a table containing 10 OpenFile
@@ -56,11 +57,12 @@ class FileSystem {
 	this->Create("stdin",0); 
 	this->Create("stdout",0); 
 
-	OpenFile* temp = this->Open("stdin",2); // index = 1			
+	OpenFile* temp = this->Open("stdin", 0); // index = 1			
 	openfile[0] = temp;		// index = 1
-
-	temp = this->Open("stdout", 3);
-	openfile[1] =temp;	// index = 2
+	openfile[0]->type = 1;
+	temp = this->Open("stdout", 0);
+	openfile[1] = temp;	// index = 2
+	openfile[1]->type = 0;
 	index = 1;
 	delete temp;
 	}
