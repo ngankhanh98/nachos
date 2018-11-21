@@ -13,19 +13,24 @@ int main(int argc, char* argv[])
 	char *c;
 	int filesz;
 	char name[MAX_LENGTH];
-	char *content = "nguyen thi ngan khanh 1612291\0";
-
+	
 	Print("Input file name:");
 	Scan(name, MAX_LENGTH);
+	if ((fileId = Open(name, 0)) == -1)
+	{
+		Print("Can not open file ");
+		return 0;
+	}
+	filesz = Seek(-1, fileId);
 	
-	fileId = Open(name, 0);
-	Seek(0, name);
-	
-	//Print("Input content: ");
-	//Scan(content, MAX_LENGTH);
-	
-	Write(content, MAX_LENGTH, fileId);
-	CloseFile(name);
+	Print("Input content: ");
+	Scan(c, MAX_LENGTH);
+
+	while(c[i]!='\n'&&c[i]!='\0')
+	{
+		Write(c+i, 1, fileId);	
+		i++;
+	}
 	
 	CloseFile(fileId);
 	return 0;
