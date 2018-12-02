@@ -77,8 +77,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 						// to leave room for the stack
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
-    printf("size: %d\n", size);
-    printf("numPages: %d\n", numPages);
+    //printf("size: %d\n", size);
+    //printf("numPages: %d\n", numPages);
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
@@ -95,7 +95,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     slot = gBitMapPhysPage->Find();
 	pageTable[i].physicalPage = slot;
     gBitMapPhysPage->Mark(slot);
-    printf("slot %d\n", slot);
+    //printf("slot %d\n", slot);
 	pageTable[i].valid = TRUE;
 	pageTable[i].use = FALSE;
 	pageTable[i].dirty = FALSE;
@@ -109,7 +109,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
     //bzero(machine->mainMemory, size);
     for (i = 0; i < numPages; i++) {
     	bzero(&(machine->mainMemory[pageTable[i].physicalPage*PageSize]), PageSize);
-        printf("0");
 	}
 
 // then, copy in the code and data segments into memory
@@ -124,9 +123,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
         for (i = 0; i < numPages; i++){
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]) + pageTable[i].physicalPage * PageSize,
 			PageSize, noffH.code.inFileAddr + i*PageSize);
-            char* code = &(machine->mainMemory[noffH.code.virtualAddr]) + pageTable[i].physicalPage * PageSize;
-            //printf("%s", &code);
-            printf("pass");
         }
     }
     if (noffH.initData.size > 0) {
@@ -134,9 +130,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
         for (i = 0; i < numPages; i++){
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]) + pageTable[i].physicalPage * PageSize,
 			PageSize, noffH.initData.inFileAddr + i*PageSize);
-            char *data = &(machine->mainMemory[noffH.initData.virtualAddr]) + pageTable[i].physicalPage * PageSize;
-            //printf("%s", &data);
-            printf("pass");
         }
     }
 

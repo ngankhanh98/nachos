@@ -7,5 +7,5 @@ int main(){
     {
         PrintChar('B');
     }
-    //return 0;
+    return 0;
 }

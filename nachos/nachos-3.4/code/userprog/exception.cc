@@ -424,7 +424,7 @@ void ExceptionHandler(ExceptionType which)
 			virtAddr = machine->ReadRegister(4); 
 			filename = User2System(virtAddr, MaxFileLength + 1);
 			executable = fileSystem->Open(filename);
-			printf("%s\n", filename);
+			//printf("%s\n", filename);
 			
 			myThread = new Thread(filename);
 			currentThread->setStatus(RUNNING);
