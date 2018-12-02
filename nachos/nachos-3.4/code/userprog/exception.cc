@@ -423,11 +423,19 @@ void ExceptionHandler(ExceptionType which)
 			virtAddr = machine->ReadRegister(4); 
 			filename = User2System(virtAddr, MaxFileLength + 1);
 			executable = fileSystem->Open(filename);
-			space = new AddrSpace(executable);
-			myThread = new Thread(filename);
-			myThread->space = space;
-			myThread->Fork(StartMyProcess, 0);
+
+			//space = new AddrSpace(executable);
+			//myThread = new Thread(filename);
+
+			printf("-----------ERROR---------------");
+			// myThread->space = space;
+			// myThread->Fork(StartMyProcess, 0);
+			delete[] filename;
+			executable = NULL;
+			delete[] executable;
+			delete[] myThread;
 			machine->WriteRegister(2, pid);
+			break;
 		}
 		}
 		
