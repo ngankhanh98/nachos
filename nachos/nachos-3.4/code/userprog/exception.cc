@@ -106,13 +106,14 @@ void InscreasePC()
 	machine->registers[NextPCReg] += 4;
 }
 
-void StartMyProcess(int )
+void StartMyProcess(int)
 {
    	currentThread->space->InitRegisters();		// set the initial register values
     currentThread->space->RestoreState();		// load page table register
 
     machine->Run();			// jump to the user progam
-    ASSERT(FALSE);			// machine->Run never returns;
+    return;
+	//ASSERT(FALSE);			// machine->Run never returns;
 					// the address space exits
 					// by doing the syscall "exit"
 }
@@ -414,26 +415,33 @@ void ExceptionHandler(ExceptionType which)
 		case SC_Exec:
 		{
 			int virtAddr;
-			char* filename;
+			char* filename = new char[MaxFileLength];
 			SpaceId pid = 0;
 			Thread *myThread;
 			OpenFile *executable;
-    		AddrSpace *space;
+    		//AddrSpace *space;
 
 			virtAddr = machine->ReadRegister(4); 
 			filename = User2System(virtAddr, MaxFileLength + 1);
 			executable = fileSystem->Open(filename);
-
-			//space = new AddrSpace(executable);
-			//myThread = new Thread(filename);
-
-			printf("-----------ERROR---------------");
-			// myThread->space = space;
-			// myThread->Fork(StartMyProcess, 0);
+			printf("%s\n", filename);
+			
+			myThread = new Thread(filename);
+			currentThread->setStatus(RUNNING);
+			myThread->space = new AddrSpace(executable);
+			//printf("-----------ERROR---------------\n");
+			//myThread->space = space;
+			//currentThread->space = myThread->space;
+			//printf("-----------ERROR---------------\n");
+			myThread->Fork(StartMyProcess, 0);
+			//printf("-----------ERROR---------------\n");
+			
 			delete[] filename;
-			executable = NULL;
-			delete[] executable;
-			delete[] myThread;
+			//executable = NULL;
+			//myThread->Finish();
+			//space = NULL;
+			//delete[] executable;
+			//delete myThread;
 			machine->WriteRegister(2, pid);
 			break;
 		}
