@@ -431,9 +431,7 @@ void ExceptionHandler(ExceptionType which)
 				break;
 			}
 			pid = fileSystem->index - 2; // index = 1, 2 ~ stdin, stdout
-			printf("Process ID: %d\n", pid);
 			myThread = new Thread(filename);
-			currentThread->setStatus(RUNNING);
 			myThread->space = new AddrSpace(executable);
 			
 			myThread->Fork(StartMyProcess, 0);
