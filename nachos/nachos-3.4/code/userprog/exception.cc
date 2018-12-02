@@ -416,33 +416,31 @@ void ExceptionHandler(ExceptionType which)
 		{
 			int virtAddr;
 			char* filename = new char[MaxFileLength];
-			SpaceId pid = 0;
+			SpaceId pid;
 			Thread *myThread;
 			OpenFile *executable;
     		//AddrSpace *space;
 
 			virtAddr = machine->ReadRegister(4); 
 			filename = User2System(virtAddr, MaxFileLength + 1);
-			executable = fileSystem->Open(filename);
-			//printf("%s\n", filename);
-			
+
+			if((executable = fileSystem->Open(filename)) == NULL)
+			{
+				printf("Unable to open %s\n", filename);
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			pid = fileSystem->index - 2; // index = 1, 2 ~ stdin, stdout
+			printf("Process ID: %d\n", pid);
 			myThread = new Thread(filename);
 			currentThread->setStatus(RUNNING);
 			myThread->space = new AddrSpace(executable);
-			//printf("-----------ERROR---------------\n");
-			//myThread->space = space;
-			//currentThread->space = myThread->space;
-			//printf("-----------ERROR---------------\n");
+			
 			myThread->Fork(StartMyProcess, 0);
-			//printf("-----------ERROR---------------\n");
 			
 			delete[] filename;
-			//executable = NULL;
-			//myThread->Finish();
-			//space = NULL;
-			//delete[] executable;
-			//delete myThread;
 			machine->WriteRegister(2, pid);
+			
 			break;
 		}
 		}
