@@ -18,21 +18,21 @@
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
-#define SC_Halt		0
-#define SC_Exit		1
-#define SC_Exec		2
-#define SC_Join		3
-#define SC_CreateFile	4
-#define SC_Open		5
-#define SC_Read		6
-#define SC_Write	7
-#define SC_Close	8
-#define SC_Fork		9
-#define SC_Yield	10
-#define SC_Seek		11
-#define SC_Print	12
-#define SC_Scan		13
-#define SC_PrintChar 	14
+#define SC_Halt 0
+#define SC_Exit 1
+#define SC_Exec 2
+#define SC_Join 3
+#define SC_CreateFile 4
+#define SC_Open 5
+#define SC_Read 6
+#define SC_Write 7
+#define SC_Close 8
+#define SC_Fork 9
+#define SC_Yield 10
+#define SC_Seek 11
+#define SC_Print 12
+#define SC_Scan 13
+#define SC_PrintChar 14
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
@@ -46,27 +46,25 @@
  */
 
 /* Stop Nachos, and print out performance stats */
-void Halt();		
- 
+void Halt();
 
 /* Address space control operations: Exit, Exec, and Join */
 
 /* This user program is done (status = 0 means exited normally). */
-void Exit(int status);	
+void Exit(int status);
 
 /* A unique identifier for an executing user program (address space) */
-typedef int SpaceId;	
- 
+typedef int SpaceId;
+
 /* Run the executable, stored in the Nachos file "name", and return the 
  * address space identifier
  */
 SpaceId Exec(char *name);
- 
+
 /* Only return once the the user program "id" has finished.  
  * Return the exit status.
  */
-int Join(SpaceId id); 	
- 
+int Join(SpaceId id);
 
 /* File system operations: Create, Open, Read, Write, Close
  * These functions are patterned after UNIX -- files represent
@@ -76,9 +74,9 @@ int Join(SpaceId id);
  * note that the Nachos file system has a stub implementation, which
  * will work for the purposes of testing out these routines.
  */
- 
+
 /* A unique identifier for an open Nachos file. */
-typedef int OpenFileId;	
+typedef int OpenFileId;
 
 /* when an address space starts up, it has two open files, representing 
  * keyboard input and display output (in UNIX terms, stdin and stdout).
@@ -86,9 +84,9 @@ typedef int OpenFileId;
  * the console device.
  */
 
-#define ConsoleInput	0  
-#define ConsoleOutput	1  
- 
+#define ConsoleInput 0
+#define ConsoleOutput 1
+
 /* Create a Nachos file, with "name" */
 int CreateFile(char *name);
 
@@ -126,10 +124,10 @@ void Fork(void (*func)());
  */
 void Yield();
 
-int Seek(int pos, OpenFileId id);	
+int Seek(int pos, OpenFileId id);
 
 void Print(char *buffer);
-void Scan(char* buffer, int length);
+void Scan(char *buffer, int length);
 void PrintChar(char ch);
 #endif /* IN_ASM */
 

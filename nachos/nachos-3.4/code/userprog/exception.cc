@@ -25,6 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 #include "filehdr.h"
+#include "thread.h"
+#include "addrspace.h"
 #define MaxFileLength 255
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -104,6 +106,16 @@ void InscreasePC()
 	machine->registers[NextPCReg] += 4;
 }
 
+void StartMyProcess(int )
+{
+   	currentThread->space->InitRegisters();		// set the initial register values
+    currentThread->space->RestoreState();		// load page table register
+
+    machine->Run();			// jump to the user progam
+    ASSERT(FALSE);			// machine->Run never returns;
+					// the address space exits
+					// by doing the syscall "exit"
+}
 
 void ExceptionHandler(ExceptionType which)
 {
@@ -398,6 +410,24 @@ void ExceptionHandler(ExceptionType which)
 			ch = (char) machine->ReadRegister(4);
 			gSynchConsole->Write(&ch, 1);
 			break;
+		}
+		case SC_Exec:
+		{
+			int virtAddr;
+			char* filename;
+			SpaceId pid = 0;
+			Thread *myThread;
+			OpenFile *executable;
+    		AddrSpace *space;
+
+			virtAddr = machine->ReadRegister(4); 
+			filename = User2System(virtAddr, MaxFileLength + 1);
+			executable = fileSystem->Open(filename);
+			space = new AddrSpace(executable);
+			myThread = new Thread(filename);
+			myThread->space = space;
+			myThread->Fork(StartMyProcess, 0);
+			machine->WriteRegister(2, pid);
 		}
 		}
 		
