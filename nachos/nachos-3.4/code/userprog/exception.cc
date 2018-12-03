@@ -419,7 +419,6 @@ void ExceptionHandler(ExceptionType which)
 			SpaceId pid;
 			Thread *myThread;
 			OpenFile *executable;
-    		//AddrSpace *space;
 
 			virtAddr = machine->ReadRegister(4); 
 			filename = User2System(virtAddr, MaxFileLength + 1);
@@ -430,15 +429,45 @@ void ExceptionHandler(ExceptionType which)
 				machine->WriteRegister(2, -1);
 				break;
 			}
+			
 			pid = fileSystem->index - 2; // index = 1, 2 ~ stdin, stdout
 			myThread = new Thread(filename);
+			currentThread->addChild();
 			myThread->space = new AddrSpace(executable);
-			
 			myThread->Fork(StartMyProcess, 0);
 			
 			delete[] filename;
 			machine->WriteRegister(2, pid);
+			break;
+		}
+		case SC_Join:
+		{
+			int id = machine->ReadRegister(4);
 			
+			
+			if(NO_EXIST == currentThread->getChildState(id))
+			{
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			
+			if(LIVING_CHILD == currentThread->getChildState(id))
+			{
+				currentThread->setChildState(id, PARENT_WAIT);
+				IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+                currentThread->Sleep();
+                (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+			}
+			while(PARENT_WAIT == currentThread->getChildState(id))
+			{
+				IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+                currentThread->Sleep();
+                (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+
+                // Obtain the new status
+              // currentThread->getChildStatus(id);
+			}
+			machine->WriteRegister(2, 0);
 			break;
 		}
 		}

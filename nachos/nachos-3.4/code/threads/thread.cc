@@ -31,13 +31,19 @@
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
-
+int Thread::childrenCount = 0;
 Thread::Thread(char* threadName)
 {
+    int i = 0;
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    chilrenThread = new int[MAX_CHILDREN];
+    while(i++<MAX_CHILDREN)
+    {
+        chilrenThread[i] = NO_EXIST;
+    }
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
