@@ -39,8 +39,6 @@
 
 #include "copyright.h"
 #include "utility.h"
-#include "synch.h"
-#include "list.h"
 
 #ifdef USER_PROGRAM
 #include "machine.h"
@@ -61,10 +59,17 @@
 // Thread state
 enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 
+// Child thread state
+enum ChildState { NO_EXIST, LIVING_CHILD, PARENT_WAIT};
+
+// the number of thread children
+#define MAX_CHILDREN 10
+
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(int arg);	 
 
-
+// class Semaphore
+class Semaphore;
 // The following class defines a "thread control block" -- which
 // represents a single thread of execution.
 //
@@ -104,8 +109,14 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
-    
-    
+    void addChild(){ chilrenThread[childrenCount++] = LIVING_CHILD;}
+    int getChildState(int id) { return chilrenThread[id];}
+    void setChildState(int id, int state) { chilrenThread[id] = state;};
+    void printChild(){ 
+      int i = 0;
+      while(i++<childrenCount)
+          printf("%d\n", chilrenThread[i]);
+    }
   private:
     // some of the private data for this class is listed above
     
@@ -118,7 +129,8 @@ class Thread {
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()
-    
+    int *chilrenThread;
+    static int childrenCount;
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
 // one for its state while executing user code, one for its state 
@@ -133,6 +145,7 @@ class Thread {
     AddrSpace *space;			// User code this thread is running.
 #endif
 };
+
 
 // Magical machine-dependent routines, defined in switch.s
 

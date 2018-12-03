@@ -432,38 +432,43 @@ void ExceptionHandler(ExceptionType which)
 			
 			pid = fileSystem->index - 2; // index = 1, 2 ~ stdin, stdout
 			myThread = new Thread(filename);
+			currentThread->addChild();
 			myThread->space = new AddrSpace(executable);
-			//currentThread->addChild(myThread);
-			//printf("pass\n");
 			myThread->Fork(StartMyProcess, 0);
-			//currentThread->Wait();
-			//currentThread->deleteChild();
 			
 			delete[] filename;
-			
 			machine->WriteRegister(2, pid);
 			break;
 		}
 		case SC_Join:
 		{
-			int virtAddr;
-			char* filename = new char[MaxFileLength];
-			SpaceId pid;
-			Thread *myThread;
-			OpenFile *executable;
-    		//AddrSpace *space;
-
-			virtAddr = machine->ReadRegister(4); 
-			filename = User2System(virtAddr, MaxFileLength + 1);
-
-			if((executable = fileSystem->Open(filename)) == NULL)
+			int id = machine->ReadRegister(4);
+			
+			
+			if(NO_EXIST == currentThread->getChildState(id))
 			{
-				printf("Unable to open %s\n", filename);
 				machine->WriteRegister(2, -1);
 				break;
 			}
+			
+			if(LIVING_CHILD == currentThread->getChildState(id))
+			{
+				currentThread->setChildState(id, PARENT_WAIT);
+				IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+                currentThread->Sleep();
+                (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+			}
+			while(PARENT_WAIT == currentThread->getChildState(id))
+			{
+				IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+                currentThread->Sleep();
+                (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 
-
+                // Obtain the new status
+              // currentThread->getChildStatus(id);
+			}
+			machine->WriteRegister(2, 0);
+			break;
 		}
 		}
 		

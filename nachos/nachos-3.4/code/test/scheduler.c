@@ -7,6 +7,7 @@ void main(){
 
     pingID = Exec("./test/ping");
     pongID = Exec("./test/pong");
-
-    while(1){};
+    //Join(0);
+    //Join(1);
+   while(1){};
 }
