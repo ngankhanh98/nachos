@@ -419,6 +419,38 @@ void ExceptionHandler(ExceptionType which)
 			SpaceId pid;
 			Thread *myThread;
 			OpenFile *executable;
+
+			virtAddr = machine->ReadRegister(4); 
+			filename = User2System(virtAddr, MaxFileLength + 1);
+
+			if((executable = fileSystem->Open(filename)) == NULL)
+			{
+				printf("Unable to open %s\n", filename);
+				machine->WriteRegister(2, -1);
+				break;
+			}
+			
+			pid = fileSystem->index - 2; // index = 1, 2 ~ stdin, stdout
+			myThread = new Thread(filename);
+			myThread->space = new AddrSpace(executable);
+			//currentThread->addChild(myThread);
+			//printf("pass\n");
+			myThread->Fork(StartMyProcess, 0);
+			//currentThread->Wait();
+			//currentThread->deleteChild();
+			
+			delete[] filename;
+			
+			machine->WriteRegister(2, pid);
+			break;
+		}
+		case SC_Join:
+		{
+			int virtAddr;
+			char* filename = new char[MaxFileLength];
+			SpaceId pid;
+			Thread *myThread;
+			OpenFile *executable;
     		//AddrSpace *space;
 
 			virtAddr = machine->ReadRegister(4); 
@@ -430,16 +462,8 @@ void ExceptionHandler(ExceptionType which)
 				machine->WriteRegister(2, -1);
 				break;
 			}
-			pid = fileSystem->index - 2; // index = 1, 2 ~ stdin, stdout
-			myThread = new Thread(filename);
-			myThread->space = new AddrSpace(executable);
-			
-			myThread->Fork(StartMyProcess, 0);
-			
-			delete[] filename;
-			machine->WriteRegister(2, pid);
-			
-			break;
+
+
 		}
 		}
 		

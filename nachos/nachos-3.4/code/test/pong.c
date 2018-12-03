@@ -43,4 +43,5 @@ void main()
     {
         PrintChar('B');
     }
+    Print("End B\n");
 }

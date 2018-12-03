@@ -42,4 +42,5 @@ void main()
     {
         PrintChar('A');
     }
+    Print("End A\n");
 }

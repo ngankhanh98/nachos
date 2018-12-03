@@ -39,6 +39,8 @@
 
 #include "copyright.h"
 #include "utility.h"
+#include "synch.h"
+#include "list.h"
 
 #ifdef USER_PROGRAM
 #include "machine.h"
@@ -61,6 +63,7 @@ enum ThreadStatus { JUST_CREATED, RUNNING, READY, BLOCKED };
 
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(int arg);	 
+
 
 // The following class defines a "thread control block" -- which
 // represents a single thread of execution.
@@ -101,7 +104,8 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
-
+    
+    
   private:
     // some of the private data for this class is listed above
     
@@ -114,7 +118,7 @@ class Thread {
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()
-
+    
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
 // one for its state while executing user code, one for its state 
