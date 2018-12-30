@@ -108,7 +108,7 @@ int PCB::Exec(char *filename, int pID)
 	if(space == NULL)
 	{
 		printf("\nLoi: Not enough space...\n");
-		return; 
+		return -1; 
 	}
 	currentThread->space = space;
 
