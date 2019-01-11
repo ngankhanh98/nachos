@@ -25,8 +25,6 @@
 #include "system.h"
 #include "syscall.h"
 #include "filehdr.h"
-#include "thread.h"
-#include "addrspace.h"
 #define MaxFileLength 255
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -106,17 +104,6 @@ void InscreasePC()
 	machine->registers[NextPCReg] += 4;
 }
 
-void StartMyProcess(int)
-{
-   	currentThread->space->InitRegisters();		// set the initial register values
-    currentThread->space->RestoreState();		// load page table register
-
-    machine->Run();			// jump to the user progam
-    return;
-	//ASSERT(FALSE);			// machine->Run never returns;
-					// the address space exits
-					// by doing the syscall "exit"
-}
 
 void ExceptionHandler(ExceptionType which)
 {
@@ -130,8 +117,8 @@ void ExceptionHandler(ExceptionType which)
 		{
 			printf("\nShutdown, initiated by user program.\n");
 			interrupt->Halt();
+			return;
 		}
-		break;
 		case SC_CreateFile:
 		{
 			int virtAddr;
@@ -413,64 +400,178 @@ void ExceptionHandler(ExceptionType which)
 			break;
 		}
 		case SC_Exec:
+			// SpaceId Exec(char *name);
 		{
 			int virtAddr;
-			char* filename = new char[MaxFileLength];
-			SpaceId pid;
-			Thread *myThread;
-			OpenFile *executable;
+			virtAddr = machine->ReadRegister(4);
+			char* name;
+			name = User2System(virtAddr, MaxFileLength + 1);
 
-			virtAddr = machine->ReadRegister(4); 
-			filename = User2System(virtAddr, MaxFileLength + 1);
-
-			if((executable = fileSystem->Open(filename)) == NULL)
+			if (name == NULL)
 			{
-				printf("Unable to open %s\n", filename);
+				DEBUG('a', "\n Not enough memory in System");
+				printf("\n Not enough memory in System");
 				machine->WriteRegister(2, -1);
-				break;
+				//IncreasePC();
+				return;
 			}
-			
-			pid = fileSystem->index - 2; // index = 1, 2 ~ stdin, stdout
-			myThread = new Thread(filename);
-			currentThread->addChild();
-			myThread->space = new AddrSpace(executable);
-			myThread->Fork(StartMyProcess, 0);
-			
-			delete[] filename;
-			machine->WriteRegister(2, pid);
-			break;
+			OpenFile *oFile = fileSystem->Open(name);
+			if (oFile == NULL)
+			{
+				printf("\nExec:: Can't open this file.");
+				machine->WriteRegister(2, -1);
+				IncreasePC();
+				return;
+			}
+
+			delete oFile;
+
+			// Return child process id
+			int id = pTab->ExecUpdate(name);
+			machine->WriteRegister(2, id);
+
+			delete[] name;
+			IncreasePC();
+			return;
 		}
 		case SC_Join:
 		{
+			// int Join(SpaceId id)
 			int id = machine->ReadRegister(4);
-			
-			
-			if(NO_EXIST == currentThread->getChildState(id))
-			{
-				machine->WriteRegister(2, -1);
-				break;
-			}
-			
-			if(LIVING_CHILD == currentThread->getChildState(id))
-			{
-				currentThread->setChildState(id, PARENT_WAIT);
-				IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-                currentThread->Sleep();
-                (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
-			}
-			while(PARENT_WAIT == currentThread->getChildState(id))
-			{
-				IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-                currentThread->Sleep();
-                (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 
-                // Obtain the new status
-              // currentThread->getChildStatus(id);
+			int res = pTab->JoinUpdate(id);
+
+			machine->WriteRegister(2, res);
+			IncreasePC();
+			return;
+		}
+		case SC_Exit:
+		{
+			//void Exit(int status);
+			int exitStatus = machine->ReadRegister(4);
+
+			if (exitStatus != 0)
+			{
+				IncreasePC();
+				return;
+
 			}
-			machine->WriteRegister(2, 0);
-			break;
+
+			int res = pTab->ExitUpdate(exitStatus);
+			//machine->WriteRegister(2, res);
+
+			currentThread->FreeSpace();
+			currentThread->Finish();
+			IncreasePC();
+			return;
+
 		}
+		case SC_CreateSemaphore:
+		{
+			// int CreateSemaphore(char* name, int semval).
+			int virtAddr = machine->ReadRegister(4);
+			int semval = machine->ReadRegister(5);
+
+			char *name = User2System(virtAddr, MaxFileLength + 1);
+			if (name == NULL)
+			{
+				DEBUG('a', "\n Not enough memory in System");
+				printf("\n Not enough memory in System");
+				machine->WriteRegister(2, -1);
+				delete[] name;
+				IncreasePC();
+				return;
+			}
+
+			int res = semTab->Create(name, semval);
+
+			if (res == -1)
+			{
+				DEBUG('a', "\n Khong the khoi tao semaphore");
+				printf("\n Khong the khoi tao semaphore");
+				machine->WriteRegister(2, -1);
+				delete[] name;
+				IncreasePC();
+				return;
+			}
+
+			delete[] name;
+			machine->WriteRegister(2, res);
+			IncreasePC();
+			return;
 		}
+
+		case SC_Up:
+		{
+			// int Up(char* name).
+			int virtAddr = machine->ReadRegister(4);
+			int semval = machine->ReadRegister(5);
+
+			char *name = User2System(virtAddr, MaxFileLength + 1);
+			if (name == NULL)
+			{
+				DEBUG('a', "\n Not enough memory in System");
+				printf("\n Not enough memory in System");
+				machine->WriteRegister(2, -1);
+				delete[] name;
+				IncreasePC();
+				return;
+			}
+
+			int res = semTab->Signal(name);
+
+			if (res == -1)
+			{
+				DEBUG('a', "\n Khong ton tai semaphore");
+				printf("\n Khong ton tai semaphore");
+				machine->WriteRegister(2, -1);
+				delete[] name;
+				IncreasePC();
+				return;
+			}
+
+			delete[] name;
+			machine->WriteRegister(2, res);
+			IncreasePC();
+			return;
+		}
+
+		case SC_Down:
+		{
+			// int Down(char* name).
+			int virtAddr = machine->ReadRegister(4);
+			int semval = machine->ReadRegister(5);
+
+			char *name = User2System(virtAddr, MaxFileLength + 1);
+			if (name == NULL)
+			{
+				DEBUG('a', "\n Not enough memory in System");
+				printf("\n Not enough memory in System");
+				machine->WriteRegister(2, -1);
+				delete[] name;
+				IncreasePC();
+				return;
+			}
+
+			int res = semTab->Wait(name);
+
+			if (res == -1)
+			{
+				DEBUG('a', "\n Khong ton tai semaphore");
+				printf("\n Khong ton tai semaphore");
+				machine->WriteRegister(2, -1);
+				delete[] name;
+				IncreasePC();
+				return;
+			}
+
+			delete[] name;
+			machine->WriteRegister(2, res);
+			IncreasePC();
+			return;
+		}
+
+	}
 		
 
 	InscreasePC();
