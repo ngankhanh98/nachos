@@ -1,25 +1,27 @@
 # nachos
 _(Đồ án Hệ điều hành)_
 
-  * [📦 Thiết lập môi trường nachOS lên Linux](#---thi-t-l-p-m-i-tr--ng-nachos-l-n-linux)
-  * [🛠 Implement](#---implement)
-    + [Premilinary](#premilinary)
-      - [**Cơ chế thực hiện, quy trình trình thực thi của một chương trình trên NachOS**](#Cơ chế thực hiện, quy trình trình thực thi của một chương trình trên NachOS)
-      - [**Các bước cập nhật thanh ghi**](#Các bước cập nhật thanh ghi)
-      - [**Các bước tạo một Systemcall**](#Các bước tạo một Systemcall-)
-      - [**Lớp SynchConsole ở ../code/threads/ trong file system.h và system.cc**](#Lớp SynchConsole ở ../code/threads/ trong file system.h và system.cc)
-      - [**System2User và User2System ở../code/userprog trong file exception.cc**](#System2User và User2System ở../code/userprog trong file exception.cc)
-    + [Implement System call and exception](#implement-system-call-and-exception)
-      - [**Cài đặt hàm IncreasePC():**](#Cài đặt hàm IncreasePC():)
-      - [Cài đặt syscall CreateFile: int CreateFile(char * name)](#Cài đặt syscall CreateFile: int CreateFile(char * name))
-      - [Cài đặt System Call: OpenFileID Open(char *name, int type) và int Close(OpenFileID](#Cài đặt System Call: OpenFileID Open(char *name, int type) và int Close(OpenFileID)
-      - [Cài đặt System Call: int Read (char* buffer, int charcount, OpenFileID id) và int Write](#c-i---t-system-call--int-read--char--buffer--int-charcount--openfileid-id--v--int-write)
-      - [Cài đặt System Call: int Seek (int pos, OpenFileID id )](#c-i---t-system-call--int-seek--int-pos--openfileid-id--)
-      - [Chương trình createfile để kiểm tra System Call CreateFile](#ch--ng-tr-nh-createfile----ki-m-tra-system-call-createfile)
-      - [Chương trình echo](#ch--ng-tr-nh-echo)
-      - [Chương trình cat](#ch--ng-tr-nh-cat)
-      - [Chương trình copy](#ch--ng-tr-nh-copy)
-  * [🙏 Acknowledge](#---acknowledge)
+  - [📦 Thiết lập môi trường nachOS lên Linux](#---thi-t-l-p-m-i-tr--ng-nachos-l-n-linux)
+- [🛠 Implement](#---implement)
+  * [Premilinary](#premilinary)
+    + [**Cơ chế thực hiện, quy trình trình thực thi của một chương trình trên NachOS**](#--c--ch--th-c-hi-n--quy-tr-nh-tr-nh-th-c-thi-c-a-m-t-ch--ng-tr-nh-tr-n-nachos--)
+    + [**Các bước cập nhật thanh ghi**](#--c-c-b--c-c-p-nh-t-thanh-ghi--)
+    + [**Các bước tạo một Systemcall**](#--c-c-b--c-t-o-m-t-systemcall--)
+    + [**Lớp SynchConsole ở ../code/threads/ trong file system.h và system.cc**](#--l-p-synchconsole----code-threads--trong-file-systemh-v--systemcc--)
+    + [**System2User và User2System ở../code/userprog trong file exception.cc**](#--system2user-v--user2system---code-userprog-trong-file-exceptioncc--)
+  * [Implement System call and exception](#implement-system-call-and-exception)
+    + [**Cài đặt hàm IncreasePC():**](#--c-i---t-h-m-increasepc-----)
+    + [Cài đặt syscall CreateFile: int CreateFile(char * name)](#c-i---t-syscall-createfile--int-createfile-char---name-)
+    + [Cài đặt System Call: OpenFileID Open(char *name, int type) và int Close(OpenFileID](#c-i---t-system-call--openfileid-open-char--name--int-type--v--int-close-openfileid)
+    + [Cài đặt System Call: int Read (char* buffer, int charcount, OpenFileID id) và int Write](#c-i---t-system-call--int-read--char--buffer--int-charcount--openfileid-id--v--int-write)
+    + [Cài đặt System Call: int Seek (int pos, OpenFileID id )](#c-i---t-system-call--int-seek--int-pos--openfileid-id--)
+    + [Chương trình createfile để kiểm tra System Call CreateFile](#ch--ng-tr-nh-createfile----ki-m-tra-system-call-createfile)
+    + [Chương trình echo](#ch--ng-tr-nh-echo)
+    + [Chương trình cat](#ch--ng-tr-nh-cat)
+    + [Chương trình copy](#ch--ng-tr-nh-copy)
+- [🙏 Acknowledge](#---acknowledge)
+
+
 
 ## 📦 Thiết lập môi trường nachOS lên Linux
 - Bước 1 : Cài đặt Linux trên máy ảo
