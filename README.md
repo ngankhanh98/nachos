@@ -179,6 +179,7 @@ Dùng syscall ReadString cho người dùng nhập vào tên file nguồn và đ
 xuống lưu vào trong vùng nhớ. Lấy tên file đưa vào syscall Open với type của file nguồn
 là 1 (tránh bị thay đổi nội dung file nguồn) và file đích với type = 0. Trong khi còn đọc không bị lỗi và chưa đến cuối file thì đọc file nguồn với độ dài maxlength và ghi vào file đích
 
+
 ## 🙏 Acknowledge 
 **GV. Nguyễn Tấn Sơn**. Bộ tài liệu giáo khoa (2018).</br>
 **Saman Hadiani, Niklas Dahlbäck, and Uwe Assmann Linköpings Universitet**. Nachos
@@ -188,4 +189,8 @@ Beginner's Guid. https://www.ida.liu.se/~TDDI04/material/begguide/</br>
 http://dangkhoahome.blogspot.com/p/nachos.html</br>
 **Nguyễn Thành Chung. Loạt video hướng dẫn đồ án nachOS**.
 https://www.youtube.com/watch?v=t0jtY1C129s&list=PLRgTVtca98hUgCN2_2vzsAAXPiTFbvHpO</br>
+
+## 👷‍♂️ Constributors
+[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/0)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/0)[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/1)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/1)[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/2)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/2)[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/3)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/3)[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/4)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/4)[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/5)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/5)[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/6)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/6)[![](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/images/7)](https://sourcerer.io/fame/ngankhanh98/ngankhanh98/nachos/links/7)
+
 
