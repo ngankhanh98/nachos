@@ -181,8 +181,7 @@ là 1 (tránh bị thay đổi nội dung file nguồn) và file đích với ty
 **GV. Nguyễn Tấn Sơn**. Bộ tài liệu giáo khoa (2018).</br>
 **Saman Hadiani, Niklas Dahlbäck, and Uwe Assmann Linköpings Universitet**. Nachos
 Beginner's Guid. https://www.ida.liu.se/~TDDI04/material/begguide/</br>
-**Căn bản và rất căn bản về hệ điều hành NachOS.** http://read.pudn.com/downloads161/ebook/733633/Nachos_CanBan/Nachos_CanBan.p
-df</br>
+**Căn bản và rất căn bản về hệ điều hành NachOS.** http://read.pudn.com/downloads161/ebook/733633/Nachos_CanBan/Nachos_CanBan.pdf</br>
 **Dang Khoa-Le Tan. Loạt bài nachOS**.
 http://dangkhoahome.blogspot.com/p/nachos.html</br>
 **Nguyễn Thành Chung. Loạt video hướng dẫn đồ án nachOS**.
